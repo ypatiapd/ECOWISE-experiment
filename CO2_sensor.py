@@ -1,5 +1,6 @@
 import adc
 
+# This class is going to be filled with calibration algorithms 
 
 class co2Sensor:
 
