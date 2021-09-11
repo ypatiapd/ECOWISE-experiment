@@ -206,7 +206,7 @@ class DataLogger(Logger):
 
 class GroundLogger(Logger):
 
-    def __init__(self,name, filename='elink.info.log'):
+    def __init__(self,name, filename='ground.log'):
         super(GroundLogger, self).__init__(filename)
         formatter = '%(message)s'      #the timestamp is already on
         self.set_up_logger(formatter, name)
