@@ -3,6 +3,7 @@ from threading import Thread
 import logging
 from logger import InfoLogger
 import heater
+import time
 class HeatControl:
 
     __instance=None
@@ -12,11 +13,10 @@ class HeatControl:
         self.master=master
         self.exp_info_logger=master.exp_info_logger
         self.heating_info_logger=InfoLogger('heaters_info_logger','heaters.log')
-        self.master=master
-        self.pump_min_temp=5
-        self.pump_max_temp=20
-        self.sb_min_temp=15
-        self.sb_max_temp=20
+        self.pump_min_temp=20.00
+        self.pump_max_temp=25.00
+        self.sb_min_temp=20.00
+        self.sb_max_temp=25.00
         self.init_heaters()
 
     def turn_off_heat(self,id):
@@ -46,11 +46,14 @@ class HeatControl:
 
 
     def start_heating(self):
-
+        a=0
+        b=0
         while(1):
-
-            a=self.check_heat(1, self.master.measurements['Pump_Temp'], self.master.status['heater1'])
-            b=self.check_heat(2,self.master.measurements['SB_Temp'],self.master.status['heater2'])
+            self.check_command_vector()
+            if self.master.commands['TON_H1'] != 1:
+                a=self.check_heat(1, self.master.measurements['Pump_Temp'], self.master.status['heater1'])
+            if self.master.commands['TON_H2'] != 1:
+                b=self.check_heat(2,self.master.measurements['SB_Temp'],self.master.status['heater2'])
             if a or b == -1 :
                 print("bika")
                 return
@@ -74,8 +77,6 @@ class HeatControl:
             print("heat control thread terminating...")
             return -1
 
-        self.check_command_vector()
-
         if id==1:
             min_temp=self.pump_min_temp
             max_temp=self.pump_max_temp
@@ -83,43 +84,28 @@ class HeatControl:
             min_temp=self.sb_min_temp
             max_temp=self.sb_max_temp
 
-        if temp > max_temp and heat_on:
+        if float(temp) > max_temp and heat_on:
             self.turn_off_heat(id)
-        elif temp < min_temp :
+        elif float(temp) < min_temp :
             self.turn_on_heat(id)
 
     def check_command_vector(self):
-
         if self.master.commands['TON_H1'] == 1:
             self.turn_on_heat(1)
-            self.heating_info_logger.write_info("Command TON_H1 Successfuly turned on  Pump heater ")
-            self.exp_info_logger.write_info("Command TON_H1 Successfuly turned on Pump heater")
             self.master.status['heater1'] = 1
-            self.master.commands['TON_H1'] = 0
-            return 0
-
-        elif self.master.commands['TOFF_H1'] == 1:
-            self.turn_off_heat(1)
-            self.heating_info_logger.write_info("Command TOFF_H1 Successfuly turned off Pump heater")
-            self.exp_info_logger.write_info("Command TOFF_H1 Successfuly turned off Pump heater")
-            self.master.status['heater1'] = 0
-            self.master.commands['TOFF_H1'] = 0
-            return 0
-
-        elif self.master.commands['TON_H2'] == 1:
+            if self.master.commands['TOFF_H1'] == 1:
+                self.turn_off_heat(1)
+                self.master.status['heater1'] = 0
+                self.master.commands['TOFF_H1'] = 0
+                self.master.commands['TON_H1'] = 0
+        if self.master.commands['TON_H2'] == 1:
             self.turn_on_heat(2)
-            self.heating_info_logger.write_info("Command TON_H2 Successfuly turned on SB heater ")
-            self.exp_info_logger.write_info("Command TON_H2 Successfuly turned on SB heater")
             self.master.status['heater2'] = 1
-            self.master.commands['TON_H2'] = 0
-            return 0
-
-        elif self.master.commands['TOFF_H2'] == 1:
-            self.turn_off_heat(2)
-            self.heating_info_logger.write_info("Command TOFF_H2 Successfuly turned off SB heater ")
-            self.exp_info_logger.write_info("Command TOFF_H2 Successfuly turned off SB heater ")
-            self.master.status['heater2'] = 0
-            self.master.commands['TOFF_H2'] = 0
+            if self.master.commands['TOFF_H2'] == 1:
+                self.turn_off_heat(2)
+                self.master.status['heater2'] = 0
+                self.master.commands['TOFF_H2'] = 0
+                self.master.commands['TON_H2'] = 0
             return 0
 
 
