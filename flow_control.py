@@ -12,7 +12,7 @@ class flowControl():
 
         #pins
         #valve1=gpio 8
-        #valve2=gpio 25
+        #valve2=gpio 7
         #pump= gpio 16
 
         self.master=master
@@ -28,7 +28,7 @@ class flowControl():
     def start_flow(self):
 
         while 1 :
-            cycle_start_time=time.time()
+            cycle_start_time=int(round(time.time() * 1000))
 
             cycle=self.air_cycle()
             if cycle==-1:
@@ -36,9 +36,10 @@ class flowControl():
                 print("air flow thread terminating...")
                 return
 
-            self.master.time_measurements['cycle']=cycle_start_time-time.time()
-            self.master.time_measurements['id']=self.master.time_measurements['id']+1
-            self.exp_info_logger.write_info('Cycle '+format(self.master.time_measurements['id'])+' lasted'+format(self.master.time_measurements['cycle'])+' seconds')
+            self.master.time_measurements['cycle_duration']=int(round(time.time() * 1000))-cycle_start_time
+            self.master.time_measurements['cycle_id']=format(int(self.master.time_measurements['cycle_id'])+1)
+            print("cycle id::::: "+ self.master.time_measurements['cycle_id'])
+            self.exp_info_logger.write_info('Cycle '+format(self.master.time_measurements['cycle_id'])+' lasted'+format(self.master.time_measurements['cycle_duration'])+' seconds')
             #self.cycle_logger.write_info('Cycle '+format(self.master.time_measurements['id'])+' lasted'+format(self.master.time_measurements['cycle'])+' seconds')
             #self.cycle_logger.write_info('Stage1 of cycle  '+format(self.master.time_measurements['id'])+' lasted'+format(self.master.time_measurements['stage1'])+' seconds')
             #self.cycle_logger.write_info('Stage2 of cycle  '+format(self.master.time_measurements['id'])+' lasted'+format(self.master.time_measurements['stage2'])+' seconds')
@@ -63,7 +64,8 @@ class flowControl():
 
     def stage_1(self):
         print("bika stage 1")
-        start_time = time.time()
+        start_time = int(round(time.time() * 1000))
+        self.master.time_measurements['stage1_start']=start_time
         self.master.stages["stage1"]=1
         self.flow_info_logger.write_info("stage 1 begins")
         self.exp_info_logger.write_info("stage 1 begins")
@@ -73,15 +75,15 @@ class flowControl():
         self.master.status['valve1'] = 1
         self.pump.ton_pump()
         self.master.status['pump'] = 1
-        last_time = int(time.time())
-        while (int(time.time() - last_time))< 10:  # den exei apofasistei
+        last_time = int(round(time.time() * 1000))
+        while (int(int(round(time.time() * 1000)) - last_time))< 10000:  # den exei apofasistei
             cmd_state = self.check_command_vector()
             if cmd_state == 2:
                 break
             elif cmd_state==4:
                 self.flow_info_logger.write_info('manual cycle restart,air cycle was not completed')
                 self.exp_info_logger.write_info('manual cycle restart,air cycle was not completed')
-                self.master.time_measurements['stage1'] = time.time() - start_time
+                self.master.time_measurements['stage1_duration'] = int(round(time.time() * 1000)) - start_time
                 return 1
             elif cmd_state==-1:
                 return -1
@@ -90,20 +92,21 @@ class flowControl():
         self.master.status['valve2'] = 0
         print("vgika stage 1")
         self.master.stages["stage1"]=0
-        self.master.time_measurements['stage1']=time.time() - start_time
+        self.master.time_measurements['stage1_duration']=int(round(time.time() * 1000)) - start_time
         return 0
 
 
     def stage_2(self):
         print("bika stage 2")
-        start_time = time.time()
+        start_time = int(round(time.time() * 1000))
+        self.master.time_measurements['stage2_start'] = start_time
         self.master.stages["stage2"]=1
         self.flow_info_logger.write_info("stage 2 begins")
         self.exp_info_logger.write_info("stage 2 begins")
         self.pump.ton_pump()
         print("i antlia anoikse")
-        while self.master.measurements["In_Press"]<1000:
-            print("pressure="+format(self.master.measurements["In_Press"]))
+        while float(self.master.measurements["In_Press"])<1500.00:
+            #print("pressure="+format(self.master.measurements["In_Press"]))
             self.master.status['pump'] = 1
             cmd_state=self.check_command_vector()
             if cmd_state == 3:
@@ -111,8 +114,8 @@ class flowControl():
             elif cmd_state==4:
                 self.flow_info_logger.write_info('manual cycle restart,air cycle was not completed')
                 self.exp_info_logger.write_info('manual cycle restart,air cycle was not completed')
-                self.master.time_measurements['stage2'] = time.time() - start_time
-                self.cycle_logger.write_info( self.master.time_measurements['stage2'])
+                self.master.time_measurements['stage2_duration'] = int(round(time.time() * 1000)) - start_time
+                self.cycle_logger.write_info( self.master.time_measurements['stage2_duration'])
                 return 1
             elif cmd_state==-1:
                 return -1
@@ -124,20 +127,21 @@ class flowControl():
         self.flow_info_logger.write_info("valve 1 closed")
         self.exp_info_logger.write_info("valve 1 closed")
         self.master.stages["stage2"]=0
-        self.master.time_measurements['stage2']=time.time() - start_time
-        self.cycle_logger.write_info(self.master.time_measurements['stage2'])
+        self.master.time_measurements['stage2_duration']=int(round(time.time() * 1000)) - start_time
+        self.cycle_logger.write_info(self.master.time_measurements['stage2_duration'])
         return 0
 
     def stage_3(self):
         print("bika stage 3")
-        start_time = time.time()
+        start_time = int(round(time.time() * 1000))
+        self.master.time_measurements['stage3_start'] = start_time
         self.master.stages["stage3"]=1
         self.flow_info_logger.write_info("stage 3 begins")
         self.exp_info_logger.write_info("stage 3 begins")
-        last_time = int(time.time())
+        last_time = int(round(time.time() * 1000))
         print("last timeeee3"+format(last_time))
-        while (int(time.time() - last_time))< 30:
-            print("pressure=" + format(self.master.measurements["In_Press"]))
+        while (int(int(round(time.time() * 1000)) - last_time))< 30000:
+            #print("pressure_stage3=" + format(self.master.measurements["In_Press"]))
             #print(int(time.time() - last_time))
             cmd_state = self.check_command_vector()
             if cmd_state == 1:
@@ -146,7 +150,7 @@ class flowControl():
                 self.flow_info_logger.write_info('manual cycle restart,air cycle was not completed')
                 self.exp_info_logger.write_info('manual cycle restart,air cycle was not completed')
                 print('manual cycle restart,air cycle was not completed')
-                self.master.time_measurements['stage3'] = time.time() - start_time
+                self.master.time_measurements['stage3_duration'] = int(round(time.time() * 1000)) - start_time
                 return 1
             elif cmd_state==-1:
                 return -1
@@ -154,7 +158,7 @@ class flowControl():
         self.flow_info_logger.write_info('air cycle completed succesfully')
         self.exp_info_logger.write_info('air cycle completed succesfully')
         self.master.stages["stage3"]=0
-        self.master.time_measurements['stage3']=time.time() - start_time
+        self.master.time_measurements['stage3_duration']=int(round(time.time() * 1000)) - start_time
 
     def check_command_vector(self):
         if self.master.commands['STAGE_1'] == 1:
