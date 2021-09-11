@@ -1,7 +1,11 @@
 #import serial
 import numpy as np
-
+import serial  # to read from serial UART
+import pynmea2  # NMEA GPS splitter
+from datetime import datetime
+from time import sleep
 import re
+import string
 
 class gps:
 
@@ -10,54 +14,43 @@ class gps:
     def __init__(self):
         self.message=None
         self.dictionary=dict()
-        self.lattitude=None
-        self.longtitude=None
-        self.time=None
+        self.lattitude=0
+        self.longtitude=0
+        self.time=0
         self.checksum=None
         self.status=None
+        self.port = "/dev/ttyS0"
+        self.ser = serial.Serial(self.port, baudrate=9600, timeout=1)
 
         #ser = serial.Serial('serial0', 38400)
 
     def init_dict(self):
 
-        self.dictionary["Lattitude"]=None
-        self.dictionary["Longtitude"]=None
-        self.dictionary["Time"]=None
+        self.dictionary["Lattitude"]=0
+        self.dictionary["Longtitude"]=0
+        self.dictionary["Time"]=0
         self.dictionary["Checksum"] = None
         self.dictionary["Status"]=None
 
+    def read_data2(self):
+        lat=0
+        lng=0
+        dataout = pynmea2.NMEAStreamReader()
 
-    def read_data(self):
-        self.init_dict()
-
-        #for b in ser.read()
-        #data=data+b
-        #if b=='<LF>':
-        #print("data acc completed")
-        #break
-        #kai metasximatismos tou minimatos
-        #apo byte se string me decode()
-        self.message="$GPGLL,4717.11634,N,00833.91297,E,124923.00,A,A*6E<CR><LF>"
-        self.parse_strings()
-        if self.status=='A' :
-            print("all good ,store results")
-            self.dictionary["Lattitude"] = self.lattitude
-            self.dictionary["Longtitude"] = self.longtitude
-            self.dictionary["Time"] = self.time
-            self.dictionary["Checksum"] = self.checksum
-
-            return self.lattitude, self.longtitude,self.time
-        else:
-            print("invalid data , didnt store")
-
-    def parse_strings(self):
-
-         parsed_strings = []
-         parsed_strings = self.message.split(",")
-         check_parse1 = parsed_strings[7].split('*')
-         check_parse2 = check_parse1[1].split('<')
-         self.checksum = int(check_parse2[0], 16)
-         self.lattitude = float(parsed_strings[1])
-         self.longtitude = float(parsed_strings[3])
-         self.time = float(parsed_strings[5])
-         self.status = parsed_strings[6]
+        counter=0
+        while counter<100:
+            """if newdata.find(b'GGA') > 0:
+                msg = pynmea2.parse(newdata.decode('utf-8'))"""
+            newdata = self.ser.readline()
+            newdata = newdata.decode("utf-8", "ignore")
+            #print(format(newdata))
+            if newdata[0:6] == "$GPGGA":
+                #print("newdata="+newdata)
+                newmsg = pynmea2.parse(newdata)
+                lat = newmsg.latitude
+                #print("lat="+format(lat))
+                lng = newmsg.longitude
+                #print("lng=" + format(lng))
+                return lat, lng
+                latlng = "Latitude=" + str(lat) + "and Longitude=" + str(lng)
+            counter+=1
