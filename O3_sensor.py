@@ -1,7 +1,5 @@
 import adc
-
-# This class is going to be filled with calibration algorithms
-
+# to be developed
 class o3Sensor:
 
     def __init__(self):
