@@ -10,6 +10,7 @@ import adc
 from logger import InfoLogger, DataLogger
 import time
 import gps
+import csv
 
 class test_data:
 
@@ -20,7 +21,17 @@ class test_data:
         self.bus = SMBus(1)
         self.init_sensors()
         self.init_loggers()
+        self.init_csv()
 
+    def init_csv(self):
+
+        with open('data_csv.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            row = ['Timestamp','In_Temp', 'Out_Temp', 'In_Press', 'Out_Press', 'In_Hum', 'Out_Hum', 'Pump_Temp', 'SB_Temp', 'Gps_X',
+                   'Gps_Y', 'Gps_altitude',  'O3_1_ref', 'O3_1_voltage', 'O3_2_ref', 'O3_2_voltage',
+                   'CO2_1_ref', 'CO2_2_voltage', 'CO2_2_ref', 'CO2_2_voltage', 'Data_acq', 'valve_1', 'valve_2', 'heater_1', 'heater_2', 'pump', 'stage_1',
+                   'stage_2', 'stage_3','cycle_id','cycle_duration','stage1_duration','stage2_duration','stage3_duration','stage1_start','stage2_start','stage3_start']
+            writer.writerow(row)
 
     def init_loggers(self):
 
@@ -49,24 +60,21 @@ class test_data:
 
         #the initializations of the multiplexer sensors happen inside the multiplexer
         """self.bme_out = bme280.Bme280()
-        #self.bme_out.set_mode(bme280.MODE_FORCED)
-        #self.bme_in = bme280.Bme280()
-        #self.bme_in.set_mode(bme280.MODE_FORCED)
+        self.bme_out.set_mode(bme280.MODE_FORCED)
+        self.bme_in = bme280.Bme280()
+        self.bme_in.set_mode(bme280.MODE_FORCED)
         
-        #self.alt_in= ms5803py.MS5803()"""
-        #self.alt_out = ms5803py.MS5803(address=0x76)
-        time.sleep(1)
+        self.alt_in= ms5803py.MS5803()
+        self.alt_out = ms5803py.MS5803(address=0x76)
+        time.sleep(1)"""
 
         self.multiplex = multiplexer.multiplex(1)
         self.pump_sensor = MLX90614(self.bus, address=0x12)
-        #self.gps = gps.gps()
+        self.gps = gps.gps()
         self.SB_sensor = MLX90614(self.bus, address=0x19)
         self.co2_sensor=CO2_sensor.co2Sensor()
         self.o3_sensor=O3_sensor.o3Sensor()
-        self.co2_adc=adc.adc(0)
-        self.o3_adc=adc.adc(1)  #initialize with adc channel
         self.exp_info_logger.write_info("sensors initialized")
-
 
     def read_data(self):
         time.sleep(0.5)  # gia na prolavei na ginei i arxokopoihsh twn sensors apo master
