@@ -76,45 +76,97 @@ class test_data:
         self.o3_sensor=O3_sensor.o3Sensor()
         self.exp_info_logger.write_info("sensors initialized")
 
-    def read_data(self):
+        def read_data(self):
         time.sleep(0.5)  # gia na prolavei na ginei i arxokopoihsh twn sensors apo master
         while 1:
             # kapoies fores vgazei error tsekare an paizei kati me bus kai i2c
 
-            #self.multiplex.channel(0x70, 4)
-            #self.read_Out_TH()
-            self.multiplex.channel(0x70, 6)
-            self.read_In_TH()         # i arxikopoihsi ginetai ston multiplex des an mporei na ginei edw
-            #self.multiplex.channel(0x70, 5)
-            #self.read_Out_Press()
-            self.multiplex.channel(0x70, 7)
-            self.read_In_Press()
-            #press, temp = self.alt_out.read(pressure_osr=512) # GIA TO TEEEEEEEEEEEEEEEEEEEEEST
-            self.read_Pump_Temp()  # an den trexei thelei ftiaksimo to read_object des github
-            self.read_SB_Temp()
-            #self.read_GPS()    # thelei ftiaksimo to read_data()
-            self.read_CO2_1()
-            self.read_CO2_2()
-            self.read_O3_1()
-            self.read_O3_2()
+            self.master.time_measurements['Timestamp']=int(round(time.time() * 1000))
+            try:
+                self.multiplex.channel(0x70, 4)
+                self.read_Out_TH()
+            except OSError:
+                print("Out_Temp no working")
+                self.master.measurements["Out_Temp"] = 666
+                self.master.measurements["Out_Hum"] = 666
+            try:
+                self.multiplex.channel(0x70, 6)
+                self.read_In_TH()         # i arxikopoihsi ginetai ston multiplex des an mporei na ginei edw
+            except OSError:
+                self.master.measurements["In_Temp"] = 666
+                self.master.measurements["In_Hum"] = 666
+            try:
+                self.multiplex.channel(0x70, 5)
+                self.read_Out_Press()
+            except OSError:
+                print("Out_press no working")
+                self.master.measurements["Out_Press"] = 666
+            try:
+                self.multiplex.channel(0x70, 7)
+                self.read_In_Press()
+            except OSError:
+                self.master.measurements["In_Press"] = 666
+            try:
+                self.read_Pump_Temp()  # an den trexei thelei ftiaksimo to read_object des github
+            except OSError:
+                self.master.measurements["Pump_Temp"] = 666
+            try:
+                self.read_SB_Temp()
+            except OSError:
+                self.master.measurements["SB_Temp"] = 666
+
+            try:
+                self.read_GPS()    # thelei ftiaksimo to read_data()
+            except OSError:
+                print("GPS no working")
+                self.master.measurements["Gps_X"]=666
+                self.master.measurements["Gps_Y"]=666
+                self.master.measurements["Gps_Time"]=666
+            try:
+                self.read_CO2_1()
+            except OSError:
+                self.master.measurements["CO2_1_voltage"]=666
+                self.master.measurements["CO2_1_ref"] = 666
+            try:
+                self.read_CO2_2()
+            except OSError:
+                self.master.measurements["CO2_2_voltage"] = 666
+                self.master.measurements["CO2_2_ref"] = 666
+            try:
+                self.read_O3_1()
+            except OSError:
+                self.master.measurements["O3_1_voltage"] = 666
+                self.master.measurements["O3_1_ref"] = 666
+                print("adc O3 no working")
+            try:
+                self.read_O3_2()
+            except OSError:
+                self.master.measurements["O3_2_voltage"] = 666
+                self.master.measurements["O3_2_ref"] = 666
+                print("adc O3 no working")
             if self.master.stages["stage3"] == 1:
                 self.master.measurements["Data_acq"] = 1   #at stage 3 the sensors data are accurate
             else:
                 self.master.measurements["Data_acq"] = 0
             self.log_data()
-
+            self.log_csv()
             if self.master.commands['TERMINATE_EXP']:
+                self.co2_sensor.stop_pwm()
                 self.exp_info_logger.write_info("data_handle thread terminating...")
                 print("data handle thread terminating...")
                 return
             time.sleep(1)   # 1 HZ sampling
 
+
+
+
     def read_Out_TH(self):
 
         t, p, h = self.multiplex.get_temp(4)
-
-        """print("Outside Temperature: {} °C" .format(t))
-        print("Outside Pressure: {} P".format(p))
+        t="{:.2f}".format(float(t))
+        h= "{:.2f}".format(float(h))
+        #print("Outside Temperature: {} °C" .format(t))
+        """print("Outside Pressure: {} P".format(p))
         print("Outside Humidity: {} %%".format(h))"""
         self.master.measurements["Out_Temp"]=t
         self.master.measurements["Out_Hum"]=h
@@ -122,9 +174,10 @@ class test_data:
     def read_In_TH(self):
 
         t, p, h = self.multiplex.get_temp(6)
-
-        """print("Inside Temperature: {} °C".format(t))
-        print("Inside Pressure: {} P".format(p))
+        t = "{:.2f}".format(float(t))
+        h = "{:.2f}".format(float(t))
+        #print("Inside Temperature: {} °C".format(t))
+        """print("Inside Pressure: {} P".format(p))
         print("Inside Humidity: {} %%".format(h))"""
         self.master.measurements["In_Temp"] = t
         self.master.measurements["In_Hum"] = h
@@ -133,12 +186,12 @@ class test_data:
     def read_Out_Press(self):
 
         press, temp = self.multiplex.get_press(5)
-
+        press = "{:.2f}".format(float(press))
         #print("quick'n'easy pressure={} mBar, temperature={} C".format(press, temp))
         """raw_temperature = self.alt_out.read_raw_temperature(osr=4096)
         raw_pressure = self.alt_out.read_raw_pressure(osr=4096)
-        press, temp = self.alt_out.convert_raw_readings(raw_pressure, raw_temperature)
-        print(" outside pressure={} mBar, outside temperature={} C".format(press, temp))"""
+        press, temp = self.alt_out.convert_raw_readings(raw_pressure, raw_temperature)"""
+        #print(" outside pressure={} mBar".format(press))
         self.master.measurements["Out_Press"]=press
 
 
@@ -146,13 +199,14 @@ class test_data:
     def read_In_Press(self):
 
         press, temp = self.multiplex.get_press(7)
-
+        press = "{:.2f}".format(float(press))
         """print("quick'n'easy pressure={} mBar, temperature={} C".format(press, temp))"""
         """raw_temperature = self.alt_in.read_raw_temperature(osr=4096)
         raw_pressure = self.alt_in.read_raw_pressure(osr=4096)
-        press, temp = self.alt_in.convert_raw_readings(raw_pressure, raw_temperature)
-        print(" inside pressure={} mBar, inside temperature={} C".format(press, temp))"""
+        press, temp = self.alt_in.convert_raw_readings(raw_pressure, raw_temperature)"""
+        #print(" inside pressure={} mBar".format(press))
         self.master.measurements["In_Press"] = press
+
 
     #oi sinartiseis den simvadizoun me tou driver tou mlx. whyyyyyyy
     def read_Pump_Temp(self):
