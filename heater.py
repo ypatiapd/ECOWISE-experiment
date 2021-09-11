@@ -14,12 +14,16 @@ class heater:
 
       def turn_on_heater(self,id):
             if id==1:
-                  GPIO.output(7,GPIO.HIGH)
+                  state=GPIO.input(25)
+                  if not state:
+                        GPIO.output(25,GPIO.HIGH)
             else :
-                  GPIO.output(17,GPIO.HIGH)
+                  state = GPIO.input(17)
+                  if not state:
+                        GPIO.output(17,GPIO.HIGH)
 
       def turn_off_heater(self,id):
             if id==1:
-                  GPIO.output(7,GPIO.LOW)
+                  GPIO.output(25,GPIO.LOW)
             else :
                   GPIO.output(17,GPIO.LOW)
