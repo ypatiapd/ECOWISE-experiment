@@ -24,3 +24,5 @@ class pump:
         GPIO.output(self.pump_pin, GPIO.LOW)
         self.exp_info_logger.write_info("pump turned off")
         self.master.status['pump'] = 0
+
+        
