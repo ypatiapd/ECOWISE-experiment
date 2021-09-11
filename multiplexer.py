@@ -1,12 +1,12 @@
 #!/usr/bin/python
 import ms5803py
-import smbus
+from smbus2 import SMBus
 from python_bme280 import bme280
 
 class multiplex:
 
-    def __init__(self, bus):
-        self.bus = smbus.SMBus(bus)
+    def __init__(self, bus=1):
+        self.bus = SMBus(bus)
 
     def channel(self, address=0x70,
                 channel=0):  # values 0-3 indictae the channel, anything else (eg -1) turns off all channels
@@ -31,7 +31,7 @@ class multiplex:
             action = 0x00
 
         self.bus.write_byte_data(address, 0x04, action)  # 0x04 is the register for switching channels
-        print("channel="+format(channel))
+        #print("channel="+format(channel))
 
     def get_temp(self,ch):
         bme = bme280.Bme280() # check
@@ -49,9 +49,9 @@ class multiplex:
         altimeter = ms5803py.MS5803()
         press,temp=altimeter.read(pressure_osr=512)
         """if (ch == 5):
-            #print("pressure_1="+format(press))
+            print("pressure_1="+format(press))
         else:
-            #print("pressure_2="+format(press))"""
+            print("pressure_2="+format(press))"""
 
         return press,temp
 
