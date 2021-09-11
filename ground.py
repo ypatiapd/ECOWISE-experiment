@@ -8,7 +8,7 @@ import time
 import matplotlib.animation as animation
 import datetime
 from collections import deque
-
+import csv
 
 class ground:
     # by default define the interval as being 1000 mSec
@@ -20,7 +20,7 @@ class ground:
         else:
             self.uplink_host = '192.168.1.8'"""
         # self.uplink_host=socket.gethostname()  # in case 1 pc
-        self.uplink_host = '192.168.1.52'  # changeeeeeeeeeeeee
+        self.uplink_host = '192.168.1.23'  # changeeeeeeeeeeeee
         self.up_link_port = 12345
         self.images_port = 12346
         self.data_port = 12347
@@ -43,10 +43,22 @@ class ground:
         self.init_data()
         self.init_status()
         self.init_stages()
+        self.init_csv()
         self.start_log_threads()
+
 
     # vectors to store acquired data from the experiment
     # the stage vector includes the states of the stages (0/1)
+    def init_csv(self):
+
+        with open('data_csv.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            row = ['Timestamp','In_Temp', 'Out_Temp', 'In_Press', 'Out_Press', 'In_Hum', 'Out_Hum', 'Pump_Temp', 'SB_Temp', 'Gps_X',
+                   'Gps_Y', 'Gps_altitude', 'O3_1_ref', 'O3_1_voltage', 'O3_2_ref', 'O3_2_voltage',
+                   'CO2_1_ref', 'CO2_2_voltage', 'CO2_2_ref', 'CO2_2_voltage', 'Data_acq', 'valve_1', 'valve_2', 'heater_1', 'heater_2', 'pump', 'stage_1',
+                   'stage_2', 'stage_3','cycle_id','cycle_duration','stage1_duration','stage2_duration','stage3_duration','stage1_start','stage2_start','stage3_start']
+            writer.writerow(row)
+
     def init_stages(self):
         self.stages["stage1"] = 0
         self.stages["stage2"] = 0
@@ -62,6 +74,7 @@ class ground:
 
     # the data vector includes the measurements of the sensors
     def init_data(self):
+        self.data["Timestamp"]=0
         self.data["In_Temp"] = 0
         self.data["Out_Temp"] = 0
         self.data["In_Hum"] = 0
@@ -73,11 +86,23 @@ class ground:
         self.data["Gps_X"] = 0
         self.data["Gps_Y"] = 0
         self.data["Gps_altitude"] = 0
-        self.data["CO2_1"] = 0
-        self.data["CO2_2"] = 0
-        self.data["O3_1"] = 0
-        self.data["O3_2"] = 0
+        self.data["CO2_1_ref"] = 0
+        self.data["CO2_1_voltage"] = 0
+        self.data["CO2_2_ref"] = 0
+        self.data["CO2_2_voltage"] = 0
+        self.data["O3_1_ref"] = 0
+        self.data["O3_1_voltage"] = 0
+        self.data["O3_2_ref"] = 0
+        self.data["O3_2_voltage"] = 0
         self.data["Data_acq"] = 0
+        self.data["cycle_id"] = 0
+        self.data["cycle_duration"] = 0
+        self.data["stage1_duration"] = 0
+        self.data["stage2_duration"] = 0
+        self.data["stage3_duration"] = 0
+        self.data["stage1_start"] = 0
+        self.data["stage2_start"] = 0
+        self.data["stage3_start"] = 0
 
     def start_log_threads(self):
         """Starts log threads which will
@@ -209,7 +234,6 @@ class ground:
         self.status['heater2'] = status_vector[3]
         self.status['pump'] = status_vector[4]
 
-        # measurements[0] is the timestamp
         self.data['In_Temp'] = measurements[1]
         self.data['Out_Temp'] = measurements[2]
         self.data['In_Press'] = measurements[3]
@@ -222,30 +246,59 @@ class ground:
         self.data['Gps_X'] = measurements[9]
         self.data['Gps_Y'] = measurements[10]
         self.data['Gps_altitude'] = measurements[11]
-        self.data['O3_1'] = measurements[12]
-        self.data['O3_2'] = measurements[13]
-        self.data['CO2_1'] = measurements[14]
-        self.data['CO2_2'] = measurements[15]
+        self.data['O3_1_ref'] = measurements[12]
+        self.data['O3_1_voltage'] = measurements[13]
+        self.data['O3_2_ref'] = measurements[14]
+        self.data['O3_2_voltage'] = measurements[15]
+        self.data['CO2_1_ref'] = measurements[16]
+        self.data['CO2_1_voltage'] = measurements[17]
+        self.data['CO2_2_ref'] = measurements[18]
+        self.data['CO2_2_voltage'] = measurements[19]
+        self.data["Data_acq"] = measurements[20]
+        self.data["cycle_id"] = measurements[21]
+        self.data["cycle_duration"] = measurements[22]
+        self.data["stage1_duration"] = measurements[23]
+        self.data["stage2_duration"] = measurements[24]
+        self.data["stage3_duration"] = measurements[25]
+        self.data["stage1_start"] = measurements[26]
+        self.data["stage2_start"] = measurements[27]
+        self.data["stage3_start"] = measurements[28]
+        self.data['Timestamp'] = measurements[29]
 
-        self.in_temp_logger.write_info(measurements[0] + measurements[1])
-        self.out_temp_logger.write_info(measurements[0] + measurements[2])
-        self.in_pres_logger.write_info(measurements[0] + measurements[3])
-        self.out_pres_logger.write_info(measurements[0] + measurements[4])
-        self.in_hum_logger.write_info(measurements[0] + measurements[5])
-        self.out_hum_logger.write_info(measurements[0] + measurements[6])
-        self.pump_temp_logger.write_info(measurements[0] + measurements[7])
-        self.SB_temp_logger.write_info(measurements[0] + measurements[8])
-        self.gps_logger.write_info(measurements[0] + measurements[9] + "," + measurements[10] + "," + measurements[11])
+        self.in_temp_logger.write_info(measurements[0] +","+ measurements[1])
+        self.out_temp_logger.write_info(measurements[0] +","+ measurements[2])
+        self.in_pres_logger.write_info(measurements[0] +","+ measurements[3])
+        self.out_pres_logger.write_info(measurements[0] +","+ measurements[4])
+        self.in_hum_logger.write_info(measurements[0] +","+ measurements[5])
+        self.out_hum_logger.write_info(measurements[0] +","+ measurements[6])
+        self.pump_temp_logger.write_info(measurements[0] +","+ measurements[7])
+        self.SB_temp_logger.write_info(measurements[0] +","+ measurements[8])
+        self.gps_logger.write_info(measurements[0] +","+ measurements[9] + "," + measurements[10] + "," + measurements[11])
         # at the gas sensors we also put the data acq variable to know at which stage we took the measurements
-        self.O3_1_logger.write_info(measurements[0] + measurements[12] + "," + measurements[16])
-        self.O3_2_logger.write_info(measurements[0] + measurements[13] + "," + measurements[16])
-        self.CO2_1_logger.write_info(measurements[0] + measurements[14] + "," + measurements[16])
-        self.CO2_2_logger.write_info(measurements[0] + measurements[15] + "," + measurements[16])
+        self.O3_1_logger.write_info(measurements[0] +","+ measurements[12] + "," + measurements[13]+ "," + measurements[20])
+        self.O3_2_logger.write_info(measurements[0] +","+ measurements[14] + "," + measurements[15]+ "," + measurements[20])
+        self.CO2_1_logger.write_info(measurements[0] +","+ measurements[16] + "," + measurements[17]+ "," + measurements[20])
+        self.CO2_2_logger.write_info(measurements[0] +","+ measurements[18] + "," + measurements[19]+ "," + measurements[20])
         self.status_vector_logger.write_info(
-            measurements[0] + status_vector[0] + "," + status_vector[1] + "," + status_vector[2] + "," + status_vector[
+            measurements[0] +","+ status_vector[0] + "," + status_vector[1] + "," + status_vector[2] + "," + status_vector[
                 3] + "," + status_vector[4])
         self.stages_vector_logger.write_info(
-            measurements[0] + stages_vector[0] + "," + stages_vector[1] + "," + stages_vector[2])
+            measurements[0] +","+ stages_vector[0] + "," + stages_vector[1] + "," + stages_vector[2])
+
+        with open('data_csv.csv', 'a+', newline='') as file:
+            writer = csv.writer(file)
+            row=[self.data['In_Temp'],self.data["Out_Temp"],self.data["In_Press"],self.data["Out_Press"],self.data["In_Hum"],
+                 self.data["Out_Hum"],self.data["Pump_Temp"],self.data["SB_Temp"],self.data["Gps_X"],self.data["Gps_Y"],
+                 self.data["Gps_altitude"],self.data["O3_1_ref"],self.data["O3_1_voltage"],self.data["O3_2_ref"],self.data["O3_2_voltage"],self.data["CO2_1_ref"],
+                 self.data["CO2_1_voltage"],self.data["CO2_2_ref"],self.data["CO2_2_voltage"],self.data["Data_acq"],
+                 self.data['cycle_id'], self.data['cycle_duration'],
+                 self.data['stage1_duration'], self.data['stage2_duration'],
+                 self.data['stage3_duration'],
+                 self.data['stage1_start'], self.data['stage2_start'],
+                 self.data['stage3_start'],self.data['Timestamp'],
+                 self.status['valve1'],self.status['valve2'],self.status['heater1'],self.status['heater2'],self.status['pump'],self.stages['stage1'],self.stages['stage2'],self.stages['stage3']]
+            writer.writerow(row)
+
 
     def establish_connection(self):
         """Main Function to send manual commands to elinkmanager"""
@@ -397,65 +450,3 @@ class ground:
         self.ax.relim()
         self.ax.set_autoscale_on(True)
         self.ax.autoscale_view(True, True, True)
-
-    """def nt1(self, fig1):
-
-        self.xs11 = deque([] * 20, maxlen=20)
-        self.ys11 = deque([] * 20, maxlen=20)
-        self.ys12 = deque([] * 20, maxlen=20)
-
-        self.ax1 = fig1.add_subplot(111)
-        self.ax1.set_title('CO2 over time')
-        self.ax1.set_xlabel("Time")
-        self.ax1.set_ylabel("CO2")
-
-        # create empty plot at start
-        self.line11, = self.ax1.plot([], [], color="green")
-        self.line12, = self.ax1.plot([], [], color="red")
-
-        self.anim1 = animation.FuncAnimation(fig1, self.animate1, interval=self.intervalAnim, repeat=True)
-
-    def animate1(self, i):
-
-        self.ys11.append(float(self.data["CO2_1"]))
-        self.xs11.append(datetime.datetime.now())
-        self.ys12.append(float(self.data["CO2_2"]))
-
-        # update data in existing plot
-        self.line11.set_data(self.xs11, self.ys11)
-        self.line12.set_data(self.xs11, self.ys12)
-
-        # rescale plot (if you need it)
-        self.ax1.relim()  # recalculate limits
-        self.ax1.autoscale_view(True, True, True)  # rescale using limits"""
-
-    """def nt2(self, fig2):
-
-        self.xs21 = deque([] * 20, maxlen=20)
-        self.ys21 = deque([] * 20, maxlen=20)
-        self.ys22 = deque([] * 20, maxlen=20)
-
-        self.ax2 = fig2.add_subplot(111)
-        self.ax2.set_title('O3 over time')
-        self.ax2.set_xlabel("Time")
-        self.ax2.set_ylabel("O3")
-
-        # create empty plot at start
-        self.line21, = self.ax2.plot([], [], color="blue")
-        self.line22, = self.ax2.plot([], [], color="brown")
-
-        self.anim2 = animation.FuncAnimation(fig2, self.animate2, interval=self.intervalAnim, repeat=True)
-
-    def animate2(self, i):
-
-        self.ys21.append(float(self.data["O3_1"]))
-        self.xs21.append(datetime.datetime.now())
-        self.ys22.append(float(self.data["O3_2"]))
-
-        # update data in existing plot
-        self.line21.set_data(self.xs21, self.ys21)
-        self.line22.set_data(self.xs21, self.ys22)
-
-        # rescale plot (if you need it)
-        self.ax2.relim()  # recalculate limits
-        self.ax2.autoscale_view(True, True, True)  # rescale using limits"""
