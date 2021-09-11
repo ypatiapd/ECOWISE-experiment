@@ -36,7 +36,7 @@ class ELinkManager:
             self.ground_host = socket.gethostname()
         else:
             self.ground_host = ground_ip
-        self.ground_host='192.168.1.4' #ground ip
+        self.ground_host='192.168.1.1' #ground ip
         self.recv_port = 12345
         self.data_port = 12347
         self.logs_port = 12348
@@ -48,9 +48,6 @@ class ELinkManager:
         self.recv_socket.bind((self.host, self.recv_port))  #this socket always listens
         self.recv_socket.listen(5)
         self.info_logger=InfoLogger('elink_logger','elink_info.log')
-        #last_index = self.get_last_index(file_name)
-        #self.last_sended_index = str(last_index)
-        self.last_sended_index=1
         self.stop_log_threads = False
         self.start_log_threads()
 
@@ -87,15 +84,18 @@ class ELinkManager:
                 self.exp_info_logger.write_info('Terminating experiment...Closing logs socket...........')
                 print("elink thread terminating...")
                 ground_socket.close()
+                self.recv_socket.close()
                 return -1
             try:
                 ground_socket.settimeout(5)
                 ground_socket.connect((host, port))
                 self.info_logger.write_info('Connect to ground to port {port} to send {filename}'.format(port=port, filename=file_name))
                 self.exp_info_logger.write_info('Connect to ground to port {port} to send {filename}'.format(port=port, filename=file_name))
-            except (socket.error , socket.timeout)  as e:
+            except (socket.error , socket.timeout,ConnectionAbortedError)  as e:
                 self.info_logger.write_info('Socket Error when trying to connect to ground to send {filename}'.format(filename=file_name))
                 self.exp_info_logger.write_info('Socket Error when trying to connect to ground to send {filename}'.format(filename=file_name))
+                ground_socket.close()
+                #self.recv_socket.close()
                 time.sleep(2) #wait 2 seconds and retry
                 continue
 
@@ -122,10 +122,14 @@ class ELinkManager:
                 except (ConnectionResetError , ConnectionAbortedError) as e:
                     self.exp_info_logger.write_info('Lost Connection. Unable to send log {log}'.format(log=log))
                     self.info_logger.write_info('Lost Connection. Unable to send log {log}'.format(log=log))
+                    ground_socket.close()
+                    #self.recv_socket.close()
                     break
                 except socket.timeout:
                     self.exp_info_logger.write_info('Lost Connection. Unable to send log {log}'.format(log=log))
                     self.info_logger.write_info('Lost Connection. Unable to send log {log}'.format(log=log))
+                    ground_socket.close()
+                    #self.recv_socket.close()
                     print("eroooooorrrrr2")
                     break
                 time.sleep(0.2)
@@ -136,12 +140,14 @@ class ELinkManager:
         """Initialize ELinkManager. Bind him to await for a connection"""
         while True:
            #start listening
-           print("akouw")
-           ground_socket,addr = self.recv_socket.accept()# AYTO PARAMENEI ANOIXTO prepei na kleisei alla pws
-           if self.master.commands['TERMINATE_EXP'] == 1:  #auto einai axristo logika
+           if self.master.commands['TERMINATE_EXP'] == 1:
                print("elink thread terminating...")
                ground_socket.close()
+               self.recv_socket.close()
                return
+           print("akouw")
+           ground_socket,addr = self.recv_socket.accept()# AYTO PARAMENEI ANOIXTO prepei na kleisei alla pws
+
            self.info_logger.write_info('Got a connection from {addr}'.format(addr=addr))
            self.exp_info_logger.write_info('Got a connection from {addr}'.format(addr=addr))
            #Start Thread to serve client
@@ -178,19 +184,17 @@ class ELinkManager:
                     ground_socket.close()
                     self.recv_socket.close()
                     return -1
-                    break
                 #send repsonse to client
                 ground_socket.send(server_response.encode('utf-8'))
 
             ground_socket.close()
 
             #sys.exit()
-        except ConnectionResetError:
+        except (ConnectionResetError,ConnectionAbortedError) :
             print("lost")
             self.info_logger.write_info('connection error in commands connection sockets')
-            self.info_logger.write_info('connection error in commmands connection sockets')
             ground_socket.close()
-            self.recv_socket.close()  #mporei na xreiastei na allaksei
+            #self.recv_socket.close()  #mporei na xreiastei na allaksei
             #remove this , add log
             #self.master.info_logger.write_error('Lost connection unexpectedly from {addr}'.format(addr=addr))
 
@@ -220,12 +224,6 @@ class ELinkManager:
             self.info_log_thread.start()
             self.exp_info_logger.write_info(" Successfuly restarted log threads manually")
             return """Command {action} Successfuly restarted log threads""".format(action=action)
-        #elif action == "RELOAD_CONN":
-        #    return """
-        #                 [+] Command {action} successfuly
-        #                 [+] reload connection
-        #               """.format(action=action)
-
         else:
             self.master.commands[action] = 1
             self.exp_info_logger.write_info("Command {action} Successully changed command_vector""".format(action=action))
