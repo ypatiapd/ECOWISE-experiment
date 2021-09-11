@@ -33,10 +33,10 @@ def updateValues():
     value4 = str(c.data["Out_Press"])
     value5 = str(c.data["In_Temp"])
     value6 = str(c.data["Out_Temp"])
-    value7 = str(c.data["CO2_1"])
-    value8 = str(c.data["CO2_2"])
-    value9 = str(c.data["O3_1"])
-    value10 = str(c.data["O3_2"])
+    value7 = str(c.data["CO2_1_voltage"])
+    value8 = str(c.data["CO2_2_voltage"])
+    value9 = str(c.data["O3_1_voltage"])
+    value10 = str(c.data["O3_2_voltage"])
     value11 = str(c.data["Gps_X"])
     value12 = str(c.data["Gps_Y"])
     value13 = str(c.data["Gps_altitude"])
@@ -149,12 +149,14 @@ if __name__ == "__main__":
     root.title("Eco-wise experiment")  # set the title of GUI window
     style.use('bmh')
 
+
     pump = tk.StringVar()
     valve1 = tk.StringVar()
     valve2 = tk.StringVar()
     heater1 = tk.StringVar()
     heater2 = tk.StringVar()
-    stage = tk.StringVar()
+    stage=tk.StringVar()
+    stage1 = tk.StringVar()
     stage2 = tk.StringVar()
     stage3 = tk.StringVar()
 
@@ -183,16 +185,18 @@ if __name__ == "__main__":
     svalue7 = int(c.stages["stage2"])
     svalue8 = int(c.stages["stage3"])
 
+
+
     value1 = str(c.data["In_Hum"])
     value2 = str(c.data["Out_Hum"])
     value3 = str(c.data["In_Press"])
     value4 = str(c.data["Out_Press"])
     value5 = str(c.data["In_Temp"])
     value6 = str(c.data["Out_Temp"])
-    value7 = str(c.data["CO2_1"])
-    value8 = str(c.data["CO2_2"])
-    value9 = str(c.data["O3_1"])
-    value10 = str(c.data["O3_2"])
+    value7 = str(c.data["CO2_1_voltage"])
+    value8 = str(c.data["CO2_2_voltage"])
+    value9 = str(c.data["O3_1_voltage"])
+    value10 = str(c.data["O3_2_voltage"])
     value11 = str(c.data["Gps_X"])
     value12 = str(c.data["Gps_Y"])
     value13 = str(c.data["Gps_altitude"])
