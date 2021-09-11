@@ -208,14 +208,14 @@ class test_data:
         self.master.measurements["In_Press"] = press
 
 
-    #oi sinartiseis den simvadizoun me tou driver tou mlx. whyyyyyyy
-    def read_Pump_Temp(self):
+     def read_Pump_Temp(self):
 
         t = self.pump_sensor.get_ambient()
         #print("ambient temperature pump=" + format(t))
         o1 = self.pump_sensor.get_object_1()   #check mlx14 for object 1 and 2 if needs compination
+        o1 = "{:.2f}".format(float(o1))
         #print("pump temperature=" + format(o1))
-        #o2 = self.pump_sensor.get_object_2()
+        o2 = self.pump_sensor.get_object_2()
         #print("object2 temperature=" + format(o2))
         self.master.measurements["Pump_Temp"] = o1
 
@@ -224,49 +224,57 @@ class test_data:
         t = self.SB_sensor.get_ambient()
         #print("ambient temperature SB=" + format(t))
         o1 = self.SB_sensor.get_object_1()
+        o1 = "{:.2f}".format(float(o1))
         #print("SB temperature=" + format(o1))
         o2 = self.SB_sensor.get_object_2()
         #print("object2 temperature=" + format(o2))
-        SB_temp = 20
         self.master.measurements["SB_Temp"] = o1
 
     def read_GPS(self):
 
-        data=self.gps.read_data2() #test me keraiaaaa
-        #print(data)
-        #self.master.measurements["Gps_X"]=lattitude
-        #self.master.measurements["Gps_Y"]=longtitude
+        lat,lng=self.gps.read_data2() #test me keraiaaaa
+        lat= "{:.2f}".format(float(lat))
+        lng = "{:.2f}".format(float(lng))
+        #print("gps data"+format(lat)+",,,,,,"+format(lng))
+        self.master.measurements["Gps_X"]=lat
+        self.master.measurements["Gps_Y"]=lng
         #self.master.measurements["Gps_Time"]=altitude
 
     def read_CO2_1(self):
 
-        co2,ref=self.co2_sensor.get_value(1)
+        ref,co2=self.co2_sensor.get_value(1)
         #print("co2 concentration={}".format(co2))
-        self.master.measurements["CO2_1"]=co2
+        #print("co2 ref={}".format(ref))
+        self.master.measurements["CO2_1_voltage"]=co2
+        self.master.measurements["CO2_1_ref"] = ref
 
     def read_CO2_2(self):
 
-        co2,ref = self.co2_sensor.get_value(2)
+        ref,co2 = self.co2_sensor.get_value(2)
         #print("co2 concentration={}".format(co2))
-        self.master.measurements["CO2_2"] = co2
-
+        #print("co2 ref={}".format(ref))
+        self.master.measurements["CO2_2_voltage"] = co2
+        self.master.measurements["CO2_2_ref"] = ref
 
     def read_O3_1(self):
 
-        o3,ref= self.o3_sensor.get_value(1)
+        ref,o3= self.o3_sensor.get_value(1)
         #print("ozone_1 concentration={}".format(o3))
-        self.master.measurements["O3_1"] = o3
-
+        #print("o3 ref={}".format(ref))
+        self.master.measurements["O3_1_voltage"] = o3
+        self.master.measurements["O3_1_ref"] = ref
 
     def read_O3_2(self):
 
-        o3,ref = self.o3_sensor.get_value(2)
+        ref,o3 = self.o3_sensor.get_value(2)
         #print("ozone_2 concentration={}".format(o3))
-        self.master.measurements["O3_2"] = o3
+        #print("o3 ref={}".format(ref))
+        self.master.measurements["O3_2_voltage"] = o3
+        self.master.measurements["O3_2_ref"] = ref
 
     def log_data(self):
 
-        self.SB_temp_logger.write_info(","+format(self.master.measurements["SB_Temp"]))
+        self.SB_temp_logger.write_info(format(self.master.measurements["SB_Temp"]))
         self.pump_temp_logger.write_info(","+format(self.master.measurements["Pump_Temp"]))
         self.in_temp_logger.write_info(","+format(self.master.measurements["In_Temp"]))
         self.out_temp_logger.write_info(","+format(self.master.measurements["Out_Temp"]))
@@ -279,17 +287,34 @@ class test_data:
         self.gps_logger.write_info(","+format(self.master.measurements["Gps_altitude"]))
 
         # at the atmospheric sensor we log the value with the data acq variable so to know which data is accurate
-        self.O3_1_logger.write_info(","+format(self.master.measurements["O3_1"])+","+format(self.master.measurements["Data_acq"]))
-        self.O3_2_logger.write_info(","+format(self.master.measurements["O3_2"])+","+format(self.master.measurements["Data_acq"]))
-        self.CO2_1_logger.write_info(","+format(self.master.measurements["CO2_1"])+","+format(self.master.measurements["Data_acq"]))
-        self.CO2_2_logger.write_info( ","+format(self.master.measurements["CO2_2"])+","+format(self.master.measurements["Data_acq"]))
+        self.O3_1_logger.write_info(","+format(self.master.measurements["O3_1_ref"])+","+format(self.master.measurements["O3_1_voltage"])+","+format(self.master.measurements["Data_acq"]))
+        self.O3_2_logger.write_info(","+format(self.master.measurements["O3_2_ref"])+","+format(self.master.measurements["O3_2_voltage"])+","+format(self.master.measurements["Data_acq"]))
+        self.CO2_1_logger.write_info(","+format(self.master.measurements["CO2_1_ref"])+","+format(self.master.measurements["CO2_1_voltage"])+","+format(self.master.measurements["Data_acq"]))
+        self.CO2_2_logger.write_info( ","+format(self.master.measurements["CO2_2_ref"])+","+format(self.master.measurements["CO2_2_voltage"])+","+format(self.master.measurements["Data_acq"]))
         #self.data_logger.write_info("Data acquisition: " + format(self.master.measurements["Data_acq"]))
-        self.data_logger.write_info(',/'+format(int(self.master.measurements['In_Temp']))+'/'+format(int(self.master.measurements["Out_Temp"]))
-        +'/'+format(int(self.master.measurements["In_Press"]))+'/'+format(int(self.master.measurements["Out_Press"]))+'/'+format(int(self.master.measurements["In_Hum"]))+
-        '/'+format(int(self.master.measurements["Out_Hum"]))+'/'+format(int(self.master.measurements["Pump_Temp"]))+'/'+format(int(self.master.measurements["SB_Temp"]))+
+        self.data_logger.write_info('/'+format(self.master.measurements['In_Temp'])+'/'+format(self.master.measurements["Out_Temp"])
+        +'/'+format(self.master.measurements["In_Press"])+'/'+format(self.master.measurements["Out_Press"])+'/'+format(self.master.measurements["In_Hum"])+
+        '/'+format(self.master.measurements["Out_Hum"])+'/'+format(self.master.measurements["Pump_Temp"])+'/'+format(self.master.measurements["SB_Temp"])+
         '/'+format(self.master.measurements["Gps_X"])+'/'+format(self.master.measurements["Gps_Y"])+'/'+format(self.master.measurements["Gps_altitude"])+
-        '/'+format(int(self.master.measurements["O3_1"]))+'/'+format(int(self.master.measurements["O3_2"]))+'/'+format(int(self.master.measurements["CO2_1"]))+'/'+format(int(self.master.measurements["CO2_2"]))+'/'+format(self.master.measurements["Data_acq"])
+        '/'+format(int(self.master.measurements["O3_1_ref"]))+'/'+format(self.master.measurements["O3_1_voltage"])+'/'+format(self.master.measurements["O3_2_ref"])+'/'+format(self.master.measurements["O3_2_voltage"])+'/'+format(self.master.measurements["CO2_1_ref"])
+        +'/'+format(int(self.master.measurements["CO2_1_voltage"]))+'/'+format(int(self.master.measurements["CO2_2_ref"]))+'/'+format(int(self.master.measurements["CO2_2_voltage"]))+'/'+format(self.master.measurements["Data_acq"])
+        +'/'+ format(self.master.time_measurements["cycle_id"])+'/'+format(self.master.time_measurements["cycle_duration"])+'/'+format(self.master.time_measurements["stage1_duration"])+'/'+format(self.master.time_measurements["stage2_duration"])+'/'+format(self.master.time_measurements["stage3_duration"])
+        +'/'+format(self.master.time_measurements["stage1_start"]) +'/'+format(self.master.time_measurements["stage2_start"]) +'/'+format(self.master.time_measurements["stage3_start"])+'/'+format(self.master.time_measurements["Timestamp"])
         +'<'+format(self.master.status['valve1'])+'/'+format(self.master.status['valve2'])+'/'+
         format(self.master.status['heater1'])+'/'+format(self.master.status['heater2'])+'/'+format(self.master.status['pump'])+
         '<'+format(self.master.stages['stage1'])+"/"+format(self.master.stages['stage2'])+"/"+format(self.master.stages['stage3']))
         self.info_logger.write_info('all data logged')
+
+    def log_csv(self):
+        with open('data_csv.csv', 'a+', newline='') as file:
+            writer = csv.writer(file)
+            row=[self.master.measurements['In_Temp'],self.master.measurements["Out_Temp"],self.master.measurements["In_Press"],self.master.measurements["Out_Press"],self.master.measurements["In_Hum"],
+                 self.master.measurements["Out_Hum"],self.master.measurements["Pump_Temp"],self.master.measurements["SB_Temp"],self.master.measurements["Gps_X"],self.master.measurements["Gps_Y"],
+                 self.master.measurements["Gps_altitude"],self.master.measurements["O3_1_ref"],self.master.measurements["O3_1_voltage"],self.master.measurements["O3_2_ref"],self.master.measurements["O3_2_voltage"],self.master.measurements["CO2_1_ref"],
+                 self.master.measurements["CO2_1_voltage"],self.master.measurements["CO2_2_ref"],self.master.measurements["CO2_2_voltage"],self.master.measurements["Data_acq"],
+                 self.master.status['valve1'],self.master.status['valve2'],self.master.status['heater1'],self.master.status['heater2'],self.master.status['pump'],self.master.stages['stage1'],self.master.stages['stage2'],self.master.stages['stage3'],
+                 self.master.time_measurements['cycle_id'] , self.master.time_measurements['cycle_duration'] ,self.master.time_measurements['stage1_duration'] ,self.master.time_measurements['stage2_duration'] ,self.master.time_measurements['stage3_duration'],
+                 self.master.time_measurements['stage1_start'],self.master.time_measurements['stage2_start'],self.master.time_measurements['stage3_start'],self.master.time_measurements['Timestamp']]
+            writer.writerow(row)
+
+
