@@ -7,6 +7,8 @@ class co2Sensor:
     def __init__(self):
         self.adc = adc.adc(0)
         self.GAIN = 1
+
+        # o co2 xreiazetai pwm gia tin lampa tou
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(19, GPIO.OUT)
         self.p1 = GPIO.PWM(19, 4)
@@ -15,8 +17,8 @@ class co2Sensor:
         self.p1.start(50)
         self.p2.start(50)
 
-    def get_value(self, id):
-        return self.adc.get_value(id)
+    def get_value(self):
+        return self.adc.get_value()
 
     def stop_pwm(self):
         self.p1.stop()
