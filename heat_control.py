@@ -11,11 +11,10 @@ class HeatControl:
     def __init__(self,master):
 
         self.master=master
-        self.exp_info_logger=master.exp_info_logger
         self.heating_info_logger=InfoLogger('heaters_info_logger','heaters.log')
-        self.pump_min_temp=20.00
+        self.pump_min_temp=5.00
         self.pump_max_temp=25.00
-        self.sb_min_temp=20.00
+        self.sb_min_temp=5.00
         self.sb_max_temp=25.00
         self.init_heaters()
 
@@ -23,27 +22,19 @@ class HeatControl:
         if id==1:
             self.pump_heat.turn_off_heater(id)
             self.master.status["heater1"] = 0
-            self.heating_info_logger.write_info("Pump heater turned off")
-            self.exp_info_logger.write_info("Pump heater turned off")
             
         else:
             self.SB_heat.turn_off_heater(id)
             self.master.status["heater2"] = 0
-            self.heating_info_logger.write_info("Sensor Box heater turned off")
-            self.exp_info_logger.write_info("Sensor Box heater turned off")
 
     def turn_on_heat(self,id):
         if id==1:
             self.pump_heat.turn_on_heater(id)
             self.master.status["heater1"] = 1
-            self.heating_info_logger.write_info("Pump heat turned on")
-            self.exp_info_logger.write_info("Pump heater turned on")
+
         else:
             self.SB_heat.turn_on_heater(id)
             self.master.status["heater2"] = 1
-            self.heating_info_logger.write_info("Sensor Box heat turned on")
-            self.exp_info_logger.write_info("Sensor Box heater turned on")
-
 
     def start_heating(self):
         a=0
@@ -55,26 +46,20 @@ class HeatControl:
             if self.master.commands['TON_H2'] != 1:
                 b=self.check_heat(2,self.master.measurements['SB_Temp'],self.master.status['heater2'])
             if a or b == -1 :
-                print("bika")
                 return
-
-
-
+            time.sleep(5)# gia na min trwei cpu
 
     def init_heaters(self):
 
         self.pump_heat=heater.heater(1)
         self.heating_info_logger.write_info('Pump heater instance created')
-        self.exp_info_logger.write_info("Pump heater instance created")
         self.SB_heat=heater.heater(2)
         self.heating_info_logger.write_info('Sensor Box heater instance created')
-        self.exp_info_logger.write_info("Sensor Box heater instance created")
 
     def check_heat(self,id, temp, heat_on):
 
         if self.master.commands['TERMINATE_EXP']:
-            self.exp_info_logger.write_info("heat control thread terminating...")
-            print("heat control thread terminating...")
+            self.heating_info_logger.write_info("heat control thread terminating...")
             return -1
 
         if id==1:
