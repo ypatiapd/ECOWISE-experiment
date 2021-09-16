@@ -6,5 +6,5 @@ class o3Sensor:
         self.adc =adc.adc(1)
         self.GAIN = 1
 
-    def get_value(self,id):
-        return self.adc.get_value(id)
+    def get_value(self):
+        return self.adc.get_value()
