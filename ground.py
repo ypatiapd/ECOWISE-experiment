@@ -36,7 +36,7 @@ class ground:
         self.stop_log_threads = False
         # start threads that awaits logs
 
-        self.command = ""
+        self.command = "NC"
         self.data = dict()
         self.status = dict()
         self.stages = dict()
@@ -51,12 +51,13 @@ class ground:
     # the stage vector includes the states of the stages (0/1)
     def init_csv(self):
 
-        with open('data_csv.csv', 'w', newline='') as file:
+        with open('data_csv.csv', 'a+', newline='') as file:
             writer = csv.writer(file)
-            row = ['Timestamp','In_Temp', 'Out_Temp', 'In_Press', 'Out_Press', 'In_Hum', 'Out_Hum', 'Pump_Temp', 'SB_Temp', 'Gps_X',
+            row = ['In_Temp', 'Out_Temp', 'In_Press', 'Out_Press', 'In_Hum', 'Out_Hum', 'Pump_Temp', 'SB_Temp', 'Gps_X',
                    'Gps_Y', 'Gps_altitude', 'O3_1_ref', 'O3_1_voltage', 'O3_2_ref', 'O3_2_voltage',
-                   'CO2_1_ref', 'CO2_2_voltage', 'CO2_2_ref', 'CO2_2_voltage', 'Data_acq', 'valve_1', 'valve_2', 'heater_1', 'heater_2', 'pump', 'stage_1',
-                   'stage_2', 'stage_3','cycle_id','cycle_duration','stage1_duration','stage2_duration','stage3_duration','stage1_start','stage2_start','stage3_start']
+                   'CO2_1_ref', 'CO2_2_voltage', 'CO2_2_ref', 'CO2_2_voltage', 'Data_acq','cycle_id',
+                   'cycle_duration','stage1_duration','stage2_duration','stage3_duration',
+                   'stage1_start','stage2_start','stage3_start','Timestamp', 'valve_1', 'valve_2', 'heater_1', 'heater_2', 'pump', 'stage_1','stage_2', 'stage_3']
             writer.writerow(row)
 
     def init_stages(self):
@@ -169,7 +170,7 @@ class ground:
                     print("first receive=" + format(data))
                 except (ConnectionAbortedError, ConnectionResetError) as e:
                     print("lost connection1")
-                    log_socket.close()
+                    #log_socket.close()
                     break
 
                 if not data:
@@ -185,7 +186,7 @@ class ground:
                     print("second receive=" + format(data))
                 except (ConnectionAbortedError, ConnectionResetError) as e:
                     print("lost connection2")
-                    log_socket.close()
+                    #log_socket.close()
                     break
 
                 try:
@@ -210,6 +211,7 @@ class ground:
                         # self.info_logger.write_error('Lost connection when reading log: {log}'.format(log=data))
                         # self.print_lost_connection()
                         print("lost connection3")
+                        #log_socket.close()
                         break
         log_socket.close()
 
@@ -234,18 +236,17 @@ class ground:
         self.status['heater2'] = status_vector[3]
         self.status['pump'] = status_vector[4]
 
-        self.data['In_Temp'] = measurements[1]
-        self.data['Out_Temp'] = measurements[2]
-        self.data['In_Press'] = measurements[3]
-        self.data['Out_Press'] = measurements[4]
-        print("OUT_PRESSURE" + format(self.data['Out_Press']))
-        self.data['In_Hum'] = measurements[5]
-        self.data['Out_Hum'] = measurements[6]
-        self.data['Pump_Temp'] = measurements[7]
-        self.data['SB_Temp'] = measurements[8]
-        self.data['Gps_X'] = measurements[9]
-        self.data['Gps_Y'] = measurements[10]
-        self.data['Gps_altitude'] = measurements[11]
+        self.data['In_Temp'] = (float(measurements[1]))
+        self.data['Out_Temp'] = (float(measurements[2]))
+        self.data['In_Press'] = (float(measurements[3]))
+        self.data['Out_Press'] = (float(measurements[4]))
+        self.data['In_Hum'] = int(float(measurements[5]))
+        self.data['Out_Hum'] = int(float(measurements[6]))
+        self.data['Pump_Temp'] = (float(measurements[7]))
+        self.data['SB_Temp'] = (float(measurements[8]))
+        self.data['Gps_X'] = (float(measurements[9]))
+        self.data['Gps_Y'] = (float(measurements[10]))
+        self.data['Gps_altitude'] = (float(measurements[11]))
         self.data['O3_1_ref'] = measurements[12]
         self.data['O3_1_voltage'] = measurements[13]
         self.data['O3_2_ref'] = measurements[14]
@@ -291,11 +292,8 @@ class ground:
                  self.data["Out_Hum"],self.data["Pump_Temp"],self.data["SB_Temp"],self.data["Gps_X"],self.data["Gps_Y"],
                  self.data["Gps_altitude"],self.data["O3_1_ref"],self.data["O3_1_voltage"],self.data["O3_2_ref"],self.data["O3_2_voltage"],self.data["CO2_1_ref"],
                  self.data["CO2_1_voltage"],self.data["CO2_2_ref"],self.data["CO2_2_voltage"],self.data["Data_acq"],
-                 self.data['cycle_id'], self.data['cycle_duration'],
-                 self.data['stage1_duration'], self.data['stage2_duration'],
-                 self.data['stage3_duration'],
-                 self.data['stage1_start'], self.data['stage2_start'],
-                 self.data['stage3_start'],self.data['Timestamp'],
+                 self.data['cycle_id'], self.data['cycle_duration'],self.data['stage1_duration'], self.data['stage2_duration'],self.data['stage3_duration'],
+                 self.data['stage1_start'], self.data['stage2_start'],self.data['stage3_start'],self.data['Timestamp'],
                  self.status['valve1'],self.status['valve2'],self.status['heater1'],self.status['heater2'],self.status['pump'],self.stages['stage1'],self.stages['stage2'],self.stages['stage3']]
             writer.writerow(row)
 
@@ -303,88 +301,87 @@ class ground:
     def establish_connection(self):
         """Main Function to send manual commands to elinkmanager"""
 
-        conn_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
         # connect to server
-        while (True):
-            try:
-                conn_socket.connect((self.uplink_host, self.up_link_port))
-                self.info_ground_logger.write_info("""
-                 [+] Success!
-                 [+] Establish Connection
-                      """)
-                print("ground:connected")
-                break
-            except socket.error as e:
-                print("""
-                       [+] Server is Unavailabe
-                       [+] or there is no internet connection.
-                       [+] Try again to connect.
-                       [+] Reconecting ...
-                       """)
-                time.sleep(2)  # wait 2 seconds and retry
-                continue
+        while(True):
+            conn_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            while (True):
+                try:
+                    print("perimenw1")
+                    conn_socket.connect((self.uplink_host, self.up_link_port))
+                    print("""
+                     [+] Success!
+                     [+] Establish Connection
+                          """)
+                    print("ground:connected")
+                    break
+                except socket.error as e:
+                    print("""
+                           [+] Server is Unavailabe
+                           [+] or there is no internet connection.
+                           [+] Try again to connect.
+                           [+] Reconecting ...
+                           """)
+                    time.sleep(2)  # wait 2 seconds and retry
+                    continue
 
-        # receive prompt
-        prompt = conn_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+            # receive prompt
+            print("perimenw")
+            prompt = conn_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+            print("prompt")
 
-        while (True):
-            action = self.command
-            # print("action ="+format(action))
-            if action == "EXIT":
-                conn_socket.close()
-                sys.exit(0)
-            elif action == "":
-                continue
-            """elif action == "RESTART_GROUND_LOGS":
-                self.stop_log_threads = True
-                if self.data_log_thread.isAlive():
-                    self.data_log_thread.join()
-                if self.info_log_thread.isAlive():
-                    self.info_log_thread.join()
-                self.stop_log_threads = False
-                self.start_log_threads()
-                continue"""
-            # save data into dictionary
-            # package = {"action": action }
-
-            # if action == "SET":
-            # package['steps'] = input('Steps: ')
-
-            # send data as json string
-            try:
-                conn_socket.sendall(action.encode('utf-8'))
-                """if action == "TERMINATE_EXP":
+            while (True):
+                action = self.command
+                self.command = "NC"  # clear the command variable
+                # print("action ="+format(action))
+                if action == "EXIT":
                     conn_socket.close()
-                    return"""
-                # conn_socket.sendall(json.dumps(package).encode('utf-8')) # des to auto ti kanei
-                # get response and print it
-                response = conn_socket.recv(self.BUFFER_SIZE).decode('utf-8')
-                print("response=" + format(response))
-                self.command = ""  # clear the command variable
+                    sys.exit(0)
 
-            except ConnectionAbortedError as e:
-                print("""
-                   [+] Lost Connection.
-                   [+] Unable to send action {action}.
-                   [+] Initialize connection.
-                   [+] Please wait....
-                   """.format(action=action))
-                break
-            except ConnectionResetError as e:
-                print("""
-                 [+] Unable to send action {action}.
-                 [+] Initialize connection.
-                 [+] Please wait....
-                   """.format(action=action))
-                break
-            except (TimeoutError, BrokenPipeError) as e:
-                print("""
-                 [+] ElinkManager is unreachable
-                 [+] Something went wrong!
-                 [+] Try to reconnect...
-                   """)
-                break
+                # save data into dictionary
+                # package = {"action": action }
+
+                # if action == "SET":
+                # package['steps'] = input('Steps: ')
+
+                # send data as json string
+                try:
+                    conn_socket.sendall(action.encode('utf-8'))
+                    if action == "TERMINATE_EXP":
+                        conn_socket.close()
+                        return
+                    # conn_socket.sendall(json.dumps(package).encode('utf-8')) # des to auto ti kanei
+                    # get response and print it
+                    response = conn_socket.recv(self.BUFFER_SIZE).decode('utf-8')
+                    #print("response=" + format(response))
+                    time.sleep(3)
+
+
+                except ConnectionAbortedError as e:
+                    print("""
+                       [+] Lost Connection.
+                       [+] Unable to send action {action}.
+                       [+] Initialize connection.
+                       [+] Please wait....
+                       """.format(action=action))
+                    conn_socket.close()
+                    break
+                except ConnectionResetError as e:
+                    print("""
+                     [+] Unable to send action {action}.
+                     [+] Initialize connection.
+                     [+] Please wait....
+                       """.format(action=action))
+                    conn_socket.close()
+                    break
+                except (TimeoutError, BrokenPipeError) as e:
+                    print("""
+                     [+] ElinkManager is unreachable
+                     [+] Something went wrong!
+                     [+] Try to reconnect...
+                       """)
+                    conn_socket.close()
+                    break
+
             # print(response)
 
     def print_lost_connection(self):
@@ -450,3 +447,4 @@ class ground:
         self.ax.relim()
         self.ax.set_autoscale_on(True)
         self.ax.autoscale_view(True, True, True)
+
