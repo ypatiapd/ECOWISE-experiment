@@ -302,13 +302,13 @@ if __name__ == "__main__":
                      highlightthickness=4, bd=5)
     button2 = Button(root, text="close pump", fg='red', command=partial(c.send_command, 'TOFF_PUMP'),
                      highlightthickness=4, bd=5)
-    button3 = Button(root, text="open valve 1", fg='green', command=partial(c.send_command, 'OPEN_VALVE1'),
+    button3 = Button(root, text="open valve 1", fg='green', command=partial(c.send_command, 'OPEN_V1'),
                      highlightthickness=4, bd=5)
-    button4 = Button(root, text="close valve 1", fg='red', command=partial(c.send_command, 'CLOSE_VALVE1'),
+    button4 = Button(root, text="close valve 1", fg='red', command=partial(c.send_command, 'CLOSE_V1'),
                      highlightthickness=4, bd=5)
-    button5 = Button(root, text="open valve 2", fg='green', command=partial(c.send_command, 'OPEN_VALVE2'),
+    button5 = Button(root, text="open valve 2", fg='green', command=partial(c.send_command, 'OPEN_V2'),
                      highlightthickness=4, bd=5)
-    button6 = Button(root, text="close valve 2", fg='red', command=partial(c.send_command, 'CLOSE_VALVE2'),
+    button6 = Button(root, text="close valve 2", fg='red', command=partial(c.send_command, 'CLOSE_V2'),
                      highlightthickness=4, bd=5)
     button7 = Button(root, text="open heater 1", fg='green', command=partial(c.send_command, 'TON_H1'),
                      highlightthickness=4, bd=5)
