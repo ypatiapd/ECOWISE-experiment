@@ -16,7 +16,6 @@ class test_data:
 
     def __init__(self,master):
         self.master=master
-        self.exp_info_logger=master.exp_info_logger
         self.data_logger = master.data_logger
         self.bus = SMBus(1)
         self.init_sensors()
@@ -25,12 +24,12 @@ class test_data:
 
     def init_csv(self):
 
-        with open('data_csv.csv', 'w', newline='') as file:
+        with open('data_csv.csv', 'a+', newline='') as file:
             writer = csv.writer(file)
-            row = ['Timestamp','In_Temp', 'Out_Temp', 'In_Press', 'Out_Press', 'In_Hum', 'Out_Hum', 'Pump_Temp', 'SB_Temp', 'Gps_X',
+            row = ['In_Temp', 'Out_Temp', 'In_Press', 'Out_Press', 'In_Hum', 'Out_Hum', 'Pump_Temp', 'SB_Temp', 'Gps_X',
                    'Gps_Y', 'Gps_altitude',  'O3_1_ref', 'O3_1_voltage', 'O3_2_ref', 'O3_2_voltage',
                    'CO2_1_ref', 'CO2_2_voltage', 'CO2_2_ref', 'CO2_2_voltage', 'Data_acq', 'valve_1', 'valve_2', 'heater_1', 'heater_2', 'pump', 'stage_1',
-                   'stage_2', 'stage_3','cycle_id','cycle_duration','stage1_duration','stage2_duration','stage3_duration','stage1_start','stage2_start','stage3_start']
+                   'stage_2', 'stage_3','cycle_id','cycle_duration','stage1_duration','stage2_duration','stage3_duration','stage1_start','stage2_start','stage3_start','Timestamp']
             writer.writerow(row)
 
     def init_loggers(self):
@@ -52,98 +51,74 @@ class test_data:
         self.O3_1_logger = DataLogger('o3_1_logger','O3_1.log')
         self.O3_2_logger = DataLogger('o3_2_logger','O3_2.log')
 
-
     def init_sensors(self):
 
-
         self.GAIN = 1
-
-        #the initializations of the multiplexer sensors happen inside the multiplexer
-        """self.bme_out = bme280.Bme280()
-        self.bme_out.set_mode(bme280.MODE_FORCED)
-        self.bme_in = bme280.Bme280()
-        self.bme_in.set_mode(bme280.MODE_FORCED)
-        
-        self.alt_in= ms5803py.MS5803()
-        self.alt_out = ms5803py.MS5803(address=0x76)
-        time.sleep(1)"""
-
         self.multiplex = multiplexer.multiplex(1)
         self.pump_sensor = MLX90614(self.bus, address=0x12)
         self.gps = gps.gps()
         self.SB_sensor = MLX90614(self.bus, address=0x19)
         self.co2_sensor=CO2_sensor.co2Sensor()
         self.o3_sensor=O3_sensor.o3Sensor()
-        self.exp_info_logger.write_info("sensors initialized")
 
-        def read_data(self):
+    def read_data(self):
+
         time.sleep(0.5)  # gia na prolavei na ginei i arxokopoihsh twn sensors apo master
         while 1:
-            # kapoies fores vgazei error tsekare an paizei kati me bus kai i2c
 
             self.master.time_measurements['Timestamp']=int(round(time.time() * 1000))
             try:
                 self.multiplex.channel(0x70, 4)
                 self.read_Out_TH()
-            except OSError:
-                print("Out_Temp no working")
+            except (OSError,TypeError):
                 self.master.measurements["Out_Temp"] = 666
                 self.master.measurements["Out_Hum"] = 666
             try:
                 self.multiplex.channel(0x70, 6)
                 self.read_In_TH()         # i arxikopoihsi ginetai ston multiplex des an mporei na ginei edw
-            except OSError:
+            except (OSError,TypeError):
                 self.master.measurements["In_Temp"] = 666
                 self.master.measurements["In_Hum"] = 666
             try:
                 self.multiplex.channel(0x70, 5)
                 self.read_Out_Press()
-            except OSError:
-                print("Out_press no working")
+            except(OSError,TypeError):
                 self.master.measurements["Out_Press"] = 666
             try:
                 self.multiplex.channel(0x70, 7)
                 self.read_In_Press()
-            except OSError:
+            except (OSError,TypeError):
                 self.master.measurements["In_Press"] = 666
             try:
                 self.read_Pump_Temp()  # an den trexei thelei ftiaksimo to read_object des github
-            except OSError:
+            except(OSError,TypeError):
                 self.master.measurements["Pump_Temp"] = 666
             try:
                 self.read_SB_Temp()
-            except OSError:
+            except (OSError,TypeError):
                 self.master.measurements["SB_Temp"] = 666
 
             try:
-                self.read_GPS()    # thelei ftiaksimo to read_data()
-            except OSError:
-                print("GPS no working")
+                self.read_GPS()
+            except (OSError,TypeError):
                 self.master.measurements["Gps_X"]=666
                 self.master.measurements["Gps_Y"]=666
-                self.master.measurements["Gps_Time"]=666
+                self.master.measurements["Gps_altitude"]=666
             try:
-                self.read_CO2_1()
-            except OSError:
+                self.read_CO2()
+            except (OSError,TypeError):
                 self.master.measurements["CO2_1_voltage"]=666
                 self.master.measurements["CO2_1_ref"] = 666
-            try:
-                self.read_CO2_2()
-            except OSError:
                 self.master.measurements["CO2_2_voltage"] = 666
                 self.master.measurements["CO2_2_ref"] = 666
             try:
-                self.read_O3_1()
-            except OSError:
+                self.read_O3()
+            except (OSError,TypeError):
                 self.master.measurements["O3_1_voltage"] = 666
                 self.master.measurements["O3_1_ref"] = 666
-                print("adc O3 no working")
-            try:
-                self.read_O3_2()
-            except OSError:
                 self.master.measurements["O3_2_voltage"] = 666
                 self.master.measurements["O3_2_ref"] = 666
-                print("adc O3 no working")
+
             if self.master.stages["stage3"] == 1:
                 self.master.measurements["Data_acq"] = 1   #at stage 3 the sensors data are accurate
             else:
@@ -152,18 +127,15 @@ class test_data:
             self.log_csv()
             if self.master.commands['TERMINATE_EXP']:
                 self.co2_sensor.stop_pwm()
-                self.exp_info_logger.write_info("data_handle thread terminating...")
+                self.info_logger.write_info("data_handle thread terminating...")
                 print("data handle thread terminating...")
                 return
             time.sleep(1)   # 1 HZ sampling
 
-
-
-
     def read_Out_TH(self):
 
         t, p, h = self.multiplex.get_temp(4)
-        t="{:.2f}".format(float(t))
+        t="{:.3f}".format(float(t))
         h= "{:.2f}".format(float(h))
         #print("Outside Temperature: {} °C" .format(t))
         """print("Outside Pressure: {} P".format(p))
@@ -174,7 +146,7 @@ class test_data:
     def read_In_TH(self):
 
         t, p, h = self.multiplex.get_temp(6)
-        t = "{:.2f}".format(float(t))
+        t = "{:.3f}".format(float(t))
         h = "{:.2f}".format(float(t))
         #print("Inside Temperature: {} °C".format(t))
         """print("Inside Pressure: {} P".format(p))
@@ -182,38 +154,28 @@ class test_data:
         self.master.measurements["In_Temp"] = t
         self.master.measurements["In_Hum"] = h
 
-
     def read_Out_Press(self):
 
         press, temp = self.multiplex.get_press(5)
         press = "{:.2f}".format(float(press))
         #print("quick'n'easy pressure={} mBar, temperature={} C".format(press, temp))
-        """raw_temperature = self.alt_out.read_raw_temperature(osr=4096)
-        raw_pressure = self.alt_out.read_raw_pressure(osr=4096)
-        press, temp = self.alt_out.convert_raw_readings(raw_pressure, raw_temperature)"""
         #print(" outside pressure={} mBar".format(press))
         self.master.measurements["Out_Press"]=press
-
-
 
     def read_In_Press(self):
 
         press, temp = self.multiplex.get_press(7)
         press = "{:.2f}".format(float(press))
-        """print("quick'n'easy pressure={} mBar, temperature={} C".format(press, temp))"""
-        """raw_temperature = self.alt_in.read_raw_temperature(osr=4096)
-        raw_pressure = self.alt_in.read_raw_pressure(osr=4096)
-        press, temp = self.alt_in.convert_raw_readings(raw_pressure, raw_temperature)"""
         #print(" inside pressure={} mBar".format(press))
         self.master.measurements["In_Press"] = press
 
-
-     def read_Pump_Temp(self):
+    #oi sinartiseis den simvadizoun me tou driver tou mlx. whyyyyyyy
+    def read_Pump_Temp(self):
 
         t = self.pump_sensor.get_ambient()
         #print("ambient temperature pump=" + format(t))
         o1 = self.pump_sensor.get_object_1()   #check mlx14 for object 1 and 2 if needs compination
-        o1 = "{:.2f}".format(float(o1))
+        o1 = "{:.3f}".format(float(o1))
         #print("pump temperature=" + format(o1))
         o2 = self.pump_sensor.get_object_2()
         #print("object2 temperature=" + format(o2))
@@ -224,7 +186,7 @@ class test_data:
         t = self.SB_sensor.get_ambient()
         #print("ambient temperature SB=" + format(t))
         o1 = self.SB_sensor.get_object_1()
-        o1 = "{:.2f}".format(float(o1))
+        o1 = "{:.3f}".format(float(o1))
         #print("SB temperature=" + format(o1))
         o2 = self.SB_sensor.get_object_2()
         #print("object2 temperature=" + format(o2))
@@ -232,45 +194,37 @@ class test_data:
 
     def read_GPS(self):
 
-        lat,lng=self.gps.read_data2() #test me keraiaaaa
-        lat= "{:.2f}".format(float(lat))
-        lng = "{:.2f}".format(float(lng))
+        lat,lng,alt=self.gps.read_data2() #test me keraiaaaa
+        lat= format(float(lat))
+        lat = "{:.3f}".format(float(lat))
+        lng = format(float(lng))
+        lng = "{:.3f}".format(float(lng))
+        alt = format(float(alt))
+        alt = "{:.3f}".format(float(alt))
         #print("gps data"+format(lat)+",,,,,,"+format(lng))
         self.master.measurements["Gps_X"]=lat
         self.master.measurements["Gps_Y"]=lng
-        #self.master.measurements["Gps_Time"]=altitude
+        self.master.measurements["Gps_altitude"]=alt
 
-    def read_CO2_1(self):
+    def read_CO2(self):
 
-        ref,co2=self.co2_sensor.get_value(1)
+        co2_1,ref_1,co2_2,ref_2=self.co2_sensor.get_value()
         #print("co2 concentration={}".format(co2))
         #print("co2 ref={}".format(ref))
-        self.master.measurements["CO2_1_voltage"]=co2
-        self.master.measurements["CO2_1_ref"] = ref
+        self.master.measurements["CO2_1_voltage"]=co2_1
+        self.master.measurements["CO2_1_ref"] = ref_1
+        self.master.measurements["CO2_2_voltage"] = co2_2
+        self.master.measurements["CO2_2_ref"] = ref_2
 
-    def read_CO2_2(self):
+    def read_O3(self):
 
-        ref,co2 = self.co2_sensor.get_value(2)
-        #print("co2 concentration={}".format(co2))
-        #print("co2 ref={}".format(ref))
-        self.master.measurements["CO2_2_voltage"] = co2
-        self.master.measurements["CO2_2_ref"] = ref
-
-    def read_O3_1(self):
-
-        ref,o3= self.o3_sensor.get_value(1)
+        ae_2,we_2,ae_1,we_1= self.o3_sensor.get_value()
         #print("ozone_1 concentration={}".format(o3))
         #print("o3 ref={}".format(ref))
-        self.master.measurements["O3_1_voltage"] = o3
-        self.master.measurements["O3_1_ref"] = ref
-
-    def read_O3_2(self):
-
-        ref,o3 = self.o3_sensor.get_value(2)
-        #print("ozone_2 concentration={}".format(o3))
-        #print("o3 ref={}".format(ref))
-        self.master.measurements["O3_2_voltage"] = o3
-        self.master.measurements["O3_2_ref"] = ref
+        self.master.measurements["O3_1_voltage"] = ae_2
+        self.master.measurements["O3_1_ref"] = we_2
+        self.master.measurements["O3_2_voltage"] =ae_1
+        self.master.measurements["O3_2_ref"] = we_1
 
     def log_data(self):
 
@@ -285,13 +239,11 @@ class test_data:
         self.gps_logger.write_info(","+format(self.master.measurements["Gps_X"]))
         self.gps_logger.write_info(","+format(self.master.measurements["Gps_Y"]))
         self.gps_logger.write_info(","+format(self.master.measurements["Gps_altitude"]))
-
         # at the atmospheric sensor we log the value with the data acq variable so to know which data is accurate
         self.O3_1_logger.write_info(","+format(self.master.measurements["O3_1_ref"])+","+format(self.master.measurements["O3_1_voltage"])+","+format(self.master.measurements["Data_acq"]))
         self.O3_2_logger.write_info(","+format(self.master.measurements["O3_2_ref"])+","+format(self.master.measurements["O3_2_voltage"])+","+format(self.master.measurements["Data_acq"]))
         self.CO2_1_logger.write_info(","+format(self.master.measurements["CO2_1_ref"])+","+format(self.master.measurements["CO2_1_voltage"])+","+format(self.master.measurements["Data_acq"]))
         self.CO2_2_logger.write_info( ","+format(self.master.measurements["CO2_2_ref"])+","+format(self.master.measurements["CO2_2_voltage"])+","+format(self.master.measurements["Data_acq"]))
-        #self.data_logger.write_info("Data acquisition: " + format(self.master.measurements["Data_acq"]))
         self.data_logger.write_info('/'+format(self.master.measurements['In_Temp'])+'/'+format(self.master.measurements["Out_Temp"])
         +'/'+format(self.master.measurements["In_Press"])+'/'+format(self.master.measurements["Out_Press"])+'/'+format(self.master.measurements["In_Hum"])+
         '/'+format(self.master.measurements["Out_Hum"])+'/'+format(self.master.measurements["Pump_Temp"])+'/'+format(self.master.measurements["SB_Temp"])+
@@ -303,7 +255,6 @@ class test_data:
         +'<'+format(self.master.status['valve1'])+'/'+format(self.master.status['valve2'])+'/'+
         format(self.master.status['heater1'])+'/'+format(self.master.status['heater2'])+'/'+format(self.master.status['pump'])+
         '<'+format(self.master.stages['stage1'])+"/"+format(self.master.stages['stage2'])+"/"+format(self.master.stages['stage3']))
-        self.info_logger.write_info('all data logged')
 
     def log_csv(self):
         with open('data_csv.csv', 'a+', newline='') as file:
@@ -316,5 +267,6 @@ class test_data:
                  self.master.time_measurements['cycle_id'] , self.master.time_measurements['cycle_duration'] ,self.master.time_measurements['stage1_duration'] ,self.master.time_measurements['stage2_duration'] ,self.master.time_measurements['stage3_duration'],
                  self.master.time_measurements['stage1_start'],self.master.time_measurements['stage2_start'],self.master.time_measurements['stage3_start'],self.master.time_measurements['Timestamp']]
             writer.writerow(row)
+
 
 
