@@ -43,7 +43,6 @@ class multiplex:
             print("temperature_2="+format(t))"""
         return t, p,h
 
-
     def get_press(self,ch):
 
         altimeter = ms5803py.MS5803()
@@ -54,7 +53,6 @@ class multiplex:
             print("pressure_2="+format(press))"""
 
         return press,temp
-
 
 if __name__ == '__main__':
     bus = 1  # 0 for rev1 boards etc.
