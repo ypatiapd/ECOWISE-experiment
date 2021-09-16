@@ -14,19 +14,12 @@ class valve:
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.solenoid_pin, GPIO.OUT)
         GPIO.output(self.solenoid_pin, GPIO.LOW)
-        self.exp_info_logger = self.master.exp_info_logger
-        self.exp_info_logger.write_info("valve" + format(self.valve_number) + "created")
 
     def open_valve(self):
-
         GPIO.output(self.solenoid_pin, GPIO.HIGH)
-        self.exp_info_logger.write_info("valve" + format(self.valve_number) + "opened")
-
 
     def close_valve(self):
-
         GPIO.output(self.solenoid_pin, GPIO.LOW)
-        self.exp_info_logger.write_info("valve" + format(self.valve_number) + "closed")
 
 
 
