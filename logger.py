@@ -194,7 +194,7 @@ class DataLogger(Logger):
             raise Exception("This class is a singleton!")
         else:"""
         super(DataLogger, self).__init__(filename)
-        formatter = '%(log_id)s,%(asctime)s:%(message)s'
+        formatter = '%(log_id)s,%(message)s'
         self.set_up_logger(formatter, name)
         #DataLogger.__instance = self
 
