@@ -51,6 +51,9 @@ class gps:
                 #print("lat="+format(lat))
                 lng = newmsg.longitude
                 #print("lng=" + format(lng))
-                return lat, lng
-                latlng = "Latitude=" + str(lat) + "and Longitude=" + str(lng)
+                alt = newmsg.altitude
+                return lat, lng , alt
             counter+=1
+
+
+
