@@ -26,10 +26,13 @@ class test_data:
 
         with open('data_csv.csv', 'a+', newline='') as file:
             writer = csv.writer(file)
-            row = ['In_Temp', 'Out_Temp', 'In_Press', 'Out_Press', 'In_Hum', 'Out_Hum', 'Pump_Temp', 'SB_Temp', 'Gps_X',
-                   'Gps_Y', 'Gps_altitude',  'O3_1_ref', 'O3_1_voltage', 'O3_2_ref', 'O3_2_voltage',
-                   'CO2_1_ref', 'CO2_2_voltage', 'CO2_2_ref', 'CO2_2_voltage', 'Data_acq', 'valve_1', 'valve_2', 'heater_1', 'heater_2', 'pump', 'stage_1',
-                   'stage_2', 'stage_3','cycle_id','cycle_duration','stage1_duration','stage2_duration','stage3_duration','stage1_start','stage2_start','stage3_start','Timestamp']
+            row = ['Timestamp', 'In_Temp', 'Out_Temp', 'In_Press','In_Press_BME', 'Out_Press','Out_Press_BME', 'In_Hum', 'Out_Hum', 'Pump_Temp',
+                   'SB_Temp', 'Gps_X',
+                   'Gps_Y', 'Gps_altitude', 'O3_1_ref', 'O3_1_voltage', 'O3_2_ref', 'O3_2_voltage',
+                   'CO2_1_ref', 'CO2_2_voltage', 'CO2_2_ref', 'CO2_2_voltage', 'Data_acq', 'cycle_id',
+                   'cycle_duration', 'stage1_duration', 'stage2_duration', 'stage3_duration',
+                   'stage1_start', 'stage2_start', 'stage3_start', 'valve_1', 'valve_2', 'heater_1', 'heater_2', 'pump',
+                   'stage_1', 'stage_2', 'stage_3']
             writer.writerow(row)
 
     def init_loggers(self):
@@ -73,12 +76,14 @@ class test_data:
             except (OSError,TypeError):
                 self.master.measurements["Out_Temp"] = 666
                 self.master.measurements["Out_Hum"] = 666
+                self.master.measurements["Out_press_BME"] = 666
             try:
                 self.multiplex.channel(0x70, 6)
                 self.read_In_TH()         # i arxikopoihsi ginetai ston multiplex des an mporei na ginei edw
             except (OSError,TypeError):
                 self.master.measurements["In_Temp"] = 666
                 self.master.measurements["In_Hum"] = 666
+                self.master.measurements["In_press_BME"] = 666
             try:
                 self.multiplex.channel(0x70, 5)
                 self.read_Out_Press()
@@ -137,22 +142,26 @@ class test_data:
         t, p, h = self.multiplex.get_temp(4)
         t="{:.3f}".format(float(t))
         h= "{:.2f}".format(float(h))
+        p = "{:.2f}".format(float(p))
         #print("Outside Temperature: {} °C" .format(t))
         """print("Outside Pressure: {} P".format(p))
         print("Outside Humidity: {} %%".format(h))"""
         self.master.measurements["Out_Temp"]=t
         self.master.measurements["Out_Hum"]=h
+        self.master.measurements["Out_press_BME"] = p
 
     def read_In_TH(self):
 
         t, p, h = self.multiplex.get_temp(6)
         t = "{:.3f}".format(float(t))
-        h = "{:.2f}".format(float(t))
+        h = "{:.2f}".format(float(h))
+        p = "{:.2f}".format(float(p))
         #print("Inside Temperature: {} °C".format(t))
         """print("Inside Pressure: {} P".format(p))
         print("Inside Humidity: {} %%".format(h))"""
         self.master.measurements["In_Temp"] = t
         self.master.measurements["In_Hum"] = h
+        self.master.measurements["In_press_BME"] = p
 
     def read_Out_Press(self):
 
@@ -248,10 +257,10 @@ class test_data:
         +'/'+format(self.master.measurements["In_Press"])+'/'+format(self.master.measurements["Out_Press"])+'/'+format(self.master.measurements["In_Hum"])+
         '/'+format(self.master.measurements["Out_Hum"])+'/'+format(self.master.measurements["Pump_Temp"])+'/'+format(self.master.measurements["SB_Temp"])+
         '/'+format(self.master.measurements["Gps_X"])+'/'+format(self.master.measurements["Gps_Y"])+'/'+format(self.master.measurements["Gps_altitude"])+
-        '/'+format(int(self.master.measurements["O3_1_ref"]))+'/'+format(self.master.measurements["O3_1_voltage"])+'/'+format(self.master.measurements["O3_2_ref"])+'/'+format(self.master.measurements["O3_2_voltage"])+'/'+format(self.master.measurements["CO2_1_ref"])
-        +'/'+format(int(self.master.measurements["CO2_1_voltage"]))+'/'+format(int(self.master.measurements["CO2_2_ref"]))+'/'+format(int(self.master.measurements["CO2_2_voltage"]))+'/'+format(self.master.measurements["Data_acq"])
+        '/'+format(self.master.measurements["O3_1_ref"])+'/'+format(self.master.measurements["O3_1_voltage"])+'/'+format(self.master.measurements["O3_2_ref"])+'/'+format(self.master.measurements["O3_2_voltage"])+'/'+format(self.master.measurements["CO2_1_ref"])
+        +'/'+format(self.master.measurements["CO2_1_voltage"])+'/'+format(self.master.measurements["CO2_2_ref"])+'/'+format(self.master.measurements["CO2_2_voltage"])+'/'+format(self.master.measurements["Data_acq"])
         +'/'+ format(self.master.time_measurements["cycle_id"])+'/'+format(self.master.time_measurements["cycle_duration"])+'/'+format(self.master.time_measurements["stage1_duration"])+'/'+format(self.master.time_measurements["stage2_duration"])+'/'+format(self.master.time_measurements["stage3_duration"])
-        +'/'+format(self.master.time_measurements["stage1_start"]) +'/'+format(self.master.time_measurements["stage2_start"]) +'/'+format(self.master.time_measurements["stage3_start"])+'/'+format(self.master.time_measurements["Timestamp"])
+        +'/'+format(self.master.time_measurements["stage1_start"]) +'/'+format(self.master.time_measurements["stage2_start"]) +'/'+format(self.master.time_measurements["stage3_start"])+'/'+format(self.master.time_measurements["Timestamp"])+'/'+format(self.master.measurements["In_press_BME"])+'/'+format(self.master.measurements["Out_press_BME"])
         +'<'+format(self.master.status['valve1'])+'/'+format(self.master.status['valve2'])+'/'+
         format(self.master.status['heater1'])+'/'+format(self.master.status['heater2'])+'/'+format(self.master.status['pump'])+
         '<'+format(self.master.stages['stage1'])+"/"+format(self.master.stages['stage2'])+"/"+format(self.master.stages['stage3']))
@@ -259,13 +268,13 @@ class test_data:
     def log_csv(self):
         with open('data_csv.csv', 'a+', newline='') as file:
             writer = csv.writer(file)
-            row=[self.master.measurements['In_Temp'],self.master.measurements["Out_Temp"],self.master.measurements["In_Press"],self.master.measurements["Out_Press"],self.master.measurements["In_Hum"],
+            row=[self.master.time_measurements['Timestamp'],self.master.measurements['In_Temp'],self.master.measurements["Out_Temp"],self.master.measurements["In_Press"],self.master.measurements["In_press_BME"],self.master.measurements["Out_Press"],self.master.measurements["Out_press_BME"],self.master.measurements["In_Hum"],
                  self.master.measurements["Out_Hum"],self.master.measurements["Pump_Temp"],self.master.measurements["SB_Temp"],self.master.measurements["Gps_X"],self.master.measurements["Gps_Y"],
                  self.master.measurements["Gps_altitude"],self.master.measurements["O3_1_ref"],self.master.measurements["O3_1_voltage"],self.master.measurements["O3_2_ref"],self.master.measurements["O3_2_voltage"],self.master.measurements["CO2_1_ref"],
-                 self.master.measurements["CO2_1_voltage"],self.master.measurements["CO2_2_ref"],self.master.measurements["CO2_2_voltage"],self.master.measurements["Data_acq"],
-                 self.master.status['valve1'],self.master.status['valve2'],self.master.status['heater1'],self.master.status['heater2'],self.master.status['pump'],self.master.stages['stage1'],self.master.stages['stage2'],self.master.stages['stage3'],
-                 self.master.time_measurements['cycle_id'] , self.master.time_measurements['cycle_duration'] ,self.master.time_measurements['stage1_duration'] ,self.master.time_measurements['stage2_duration'] ,self.master.time_measurements['stage3_duration'],
-                 self.master.time_measurements['stage1_start'],self.master.time_measurements['stage2_start'],self.master.time_measurements['stage3_start'],self.master.time_measurements['Timestamp']]
+                 self.master.measurements["CO2_1_voltage"],self.master.measurements["CO2_2_ref"],self.master.measurements["CO2_2_voltage"],self.master.measurements["Data_acq"],self.master.time_measurements['cycle_id'] , self.master.time_measurements['cycle_duration'] ,self.master.time_measurements['stage1_duration'] ,self.master.time_measurements['stage2_duration'] ,self.master.time_measurements['stage3_duration'],
+                 self.master.time_measurements['stage1_start'],self.master.time_measurements['stage2_start'],self.master.time_measurements['stage3_start'],
+                 self.master.status['valve1'],self.master.status['valve2'],self.master.status['heater1'],self.master.status['heater2'],self.master.status['pump'],self.master.stages['stage1'],self.master.stages['stage2'],self.master.stages['stage3']]
+
             writer.writerow(row)
 
 
