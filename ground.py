@@ -53,11 +53,11 @@ class ground:
 
         with open('data_csv.csv', 'a+', newline='') as file:
             writer = csv.writer(file)
-            row = ['In_Temp', 'Out_Temp', 'In_Press', 'Out_Press', 'In_Hum', 'Out_Hum', 'Pump_Temp', 'SB_Temp', 'Gps_X',
+            row = ['Timestamp','In_Temp', 'Out_Temp', 'In_Press','In_Press_BME' ,'Out_Press','Out_Press_BME', 'In_Hum', 'Out_Hum', 'Pump_Temp', 'SB_Temp', 'Gps_X',
                    'Gps_Y', 'Gps_altitude', 'O3_1_ref', 'O3_1_voltage', 'O3_2_ref', 'O3_2_voltage',
                    'CO2_1_ref', 'CO2_2_voltage', 'CO2_2_ref', 'CO2_2_voltage', 'Data_acq','cycle_id',
                    'cycle_duration','stage1_duration','stage2_duration','stage3_duration',
-                   'stage1_start','stage2_start','stage3_start','Timestamp', 'valve_1', 'valve_2', 'heater_1', 'heater_2', 'pump', 'stage_1','stage_2', 'stage_3']
+                   'stage1_start','stage2_start','stage3_start', 'valve_1', 'valve_2', 'heater_1', 'heater_2', 'pump', 'stage_1','stage_2', 'stage_3']
             writer.writerow(row)
 
     def init_stages(self):
@@ -81,7 +81,9 @@ class ground:
         self.data["In_Hum"] = 0
         self.data["Out_Hum"] = 0
         self.data["In_Press"] = 0
+        self.data["In_Press_BME"] = 0
         self.data["Out_Press"] = 0
+        self.data["Out_Press_BME"] = 0
         self.data["SB_Temp"] = 0
         self.data["Pump_Temp"] = 0
         self.data["Gps_X"] = 0
@@ -240,21 +242,21 @@ class ground:
         self.data['Out_Temp'] = (float(measurements[2]))
         self.data['In_Press'] = (float(measurements[3]))
         self.data['Out_Press'] = (float(measurements[4]))
-        self.data['In_Hum'] = int(float(measurements[5]))
-        self.data['Out_Hum'] = int(float(measurements[6]))
+        self.data['In_Hum'] = (float(measurements[5]))
+        self.data['Out_Hum'] = (float(measurements[6]))
         self.data['Pump_Temp'] = (float(measurements[7]))
         self.data['SB_Temp'] = (float(measurements[8]))
         self.data['Gps_X'] = (float(measurements[9]))
         self.data['Gps_Y'] = (float(measurements[10]))
         self.data['Gps_altitude'] = (float(measurements[11]))
-        self.data['O3_1_ref'] = measurements[12]
-        self.data['O3_1_voltage'] = measurements[13]
-        self.data['O3_2_ref'] = measurements[14]
-        self.data['O3_2_voltage'] = measurements[15]
-        self.data['CO2_1_ref'] = measurements[16]
-        self.data['CO2_1_voltage'] = measurements[17]
-        self.data['CO2_2_ref'] = measurements[18]
-        self.data['CO2_2_voltage'] = measurements[19]
+        self.data['O3_1_ref'] = float(measurements[12])
+        self.data['O3_1_voltage'] = float(measurements[13])
+        self.data['O3_2_ref'] = float(measurements[14])
+        self.data['O3_2_voltage'] = float(measurements[15])
+        self.data['CO2_1_ref'] = float(measurements[16])
+        self.data['CO2_1_voltage'] = float(measurements[17])
+        self.data['CO2_2_ref'] = float(measurements[18])
+        self.data['CO2_2_voltage'] = float(measurements[19])
         self.data["Data_acq"] = measurements[20]
         self.data["cycle_id"] = measurements[21]
         self.data["cycle_duration"] = measurements[22]
@@ -265,6 +267,8 @@ class ground:
         self.data["stage2_start"] = measurements[27]
         self.data["stage3_start"] = measurements[28]
         self.data['Timestamp'] = measurements[29]
+        self.data["In_Press_BME"]=measurements[30]
+        self.data["Out_Press_BME"]=measurements[31]
 
         self.in_temp_logger.write_info(measurements[0] +","+ measurements[1])
         self.out_temp_logger.write_info(measurements[0] +","+ measurements[2])
@@ -288,13 +292,16 @@ class ground:
 
         with open('data_csv.csv', 'a+', newline='') as file:
             writer = csv.writer(file)
-            row=[self.data['In_Temp'],self.data["Out_Temp"],self.data["In_Press"],self.data["Out_Press"],self.data["In_Hum"],
+            row=[self.data['Timestamp'],self.data['In_Temp'],self.data["Out_Temp"],self.data["In_Press"],
+                 self.data["In_Press_BME"],self.data["Out_Press"],self.data["Out_Press_BME"],self.data["In_Hum"],
                  self.data["Out_Hum"],self.data["Pump_Temp"],self.data["SB_Temp"],self.data["Gps_X"],self.data["Gps_Y"],
-                 self.data["Gps_altitude"],self.data["O3_1_ref"],self.data["O3_1_voltage"],self.data["O3_2_ref"],self.data["O3_2_voltage"],self.data["CO2_1_ref"],
+                 self.data["Gps_altitude"],self.data["O3_1_ref"],self.data["O3_1_voltage"],self.data["O3_2_ref"],
+                 self.data["O3_2_voltage"],self.data["CO2_1_ref"],
                  self.data["CO2_1_voltage"],self.data["CO2_2_ref"],self.data["CO2_2_voltage"],self.data["Data_acq"],
-                 self.data['cycle_id'], self.data['cycle_duration'],self.data['stage1_duration'], self.data['stage2_duration'],self.data['stage3_duration'],
-                 self.data['stage1_start'], self.data['stage2_start'],self.data['stage3_start'],self.data['Timestamp'],
-                 self.status['valve1'],self.status['valve2'],self.status['heater1'],self.status['heater2'],self.status['pump'],self.stages['stage1'],self.stages['stage2'],self.stages['stage3']]
+                 self.data['cycle_id'], self.data['cycle_duration'],self.data['stage1_duration'], self.data['stage2_duration'],
+                 self.data['stage3_duration'],self.data['stage1_start'], self.data['stage2_start'],self.data['stage3_start'],
+                 self.status['valve1'],self.status['valve2'],self.status['heater1'],self.status['heater2'],self.status['pump'],
+                 self.stages['stage1'],self.stages['stage2'],self.stages['stage3']]
             writer.writerow(row)
 
 
