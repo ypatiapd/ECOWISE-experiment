@@ -20,7 +20,7 @@ class ELinkManager:
             self.ground_host = socket.gethostname()
         else:
             self.ground_host = ground_ip
-        self.ground_host='192.168.1.1' #ground ip
+        self.ground_host='172.16.18.160' #ground ip
         self.recv_port = 12345
         self.data_port = 12347
         self.logs_port = 12348
