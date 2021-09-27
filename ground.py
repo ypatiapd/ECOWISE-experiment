@@ -20,7 +20,7 @@ class ground:
         else:
             self.uplink_host = '192.168.1.8'"""
         # self.uplink_host=socket.gethostname()  # in case 1 pc
-        self.uplink_host = '192.168.1.23'  # changeeeeeeeeeeeee
+        self.uplink_host = '172.16.18.161'  # changeeeeeeeeeeeee
         self.up_link_port = 12345
         self.images_port = 12346
         self.data_port = 12347
