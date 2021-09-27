@@ -17,7 +17,6 @@ class flowControl():
 
         self.master=master
         self.flow_info_logger = InfoLogger('flow_info_logger','flow_info.log')
-        self.cycle_logger=InfoLogger('cycle_info_logger','cycle_info.log')
         self.pump=pump.pump(self.master)
         self.valve1=Valve.valve(1,self.master)
         self.valve2=Valve.valve(2,self.master)
@@ -61,9 +60,11 @@ class flowControl():
         self.pump.ton_pump()
         self.master.status['pump'] = 1
         last_time = int(round(time.time() * 1000))
-        while (int(int(round(time.time() * 1000)) - last_time))< 10000:  # den exei apofasistei
+        while (int(int(round(time.time() * 1000)) - last_time))< 20000:  # den exei apofasistei
             cmd_state = self.check_command_vector()
             if cmd_state == 2:
+                print("manual proceeding to stage2")
+                self.flow_info_logger.write_info('manual proceeding to stage2')
                 break
             elif cmd_state==4:
                 self.flow_info_logger.write_info('manual cycle restart,air cycle was not completed')
@@ -87,17 +88,21 @@ class flowControl():
         self.master.stages["stage2"]=1
         self.pump.ton_pump()
         self.master.status['pump'] = 1
-        while float(self.master.measurements["In_Press"])<1000.00:
+        while float(self.master.measurements["In_Press"])<1200.00:
             #print("pressure="+format(self.master.measurements["In_Press"]))
-            if (int((int(round(time.time() * 1000)) - start_time))> 300000) and (float(self.master.measurements["In_Press"])>800.00):
+            if (int((int(round(time.time() * 1000)) - start_time))> 300000) and (float(self.master.measurements["In_Press"])>1000.00):
+                print("5 minutes passed and pressure greater of 800 mBar...Proceeding to stage3")
+                self.flow_info_logger.write_info('5 minutes passed and pressure greater of 800 mBar...Proceeding to stage3')
                 break
             cmd_state=self.check_command_vector()
             if cmd_state == 3:
+                print("manual proceeding to stage3")
+                self.flow_info_logger.write_info('manual proceeding to stage3')
                 break
             elif cmd_state==4:
+                print("manual cycle restart,air cycle was not completed")
                 self.flow_info_logger.write_info('manual cycle restart,air cycle was not completed')
                 self.master.time_measurements['stage2_duration'] = int(round(time.time() * 1000)) - start_time
-                self.cycle_logger.write_info( self.master.time_measurements['stage2_duration'])
                 return 1
             elif cmd_state==-1:
                 return -1
@@ -109,7 +114,6 @@ class flowControl():
         print("i valve1  ekleise")
         self.master.stages["stage2"]=0
         self.master.time_measurements['stage2_duration']=int(round(time.time() * 1000)) - start_time
-        self.cycle_logger.write_info(self.master.time_measurements['stage2_duration'])
         return 0
 
     def stage_3(self):
@@ -120,11 +124,13 @@ class flowControl():
         self.pump.ton_pump()
         self.master.status['pump'] = 1
         last_time = int(round(time.time() * 1000))
-        while (int(int(round(time.time() * 1000)) - last_time))< 30000:
+        while (int(int(round(time.time() * 1000)) - last_time))< 60000:
             #print("pressure_stage3=" + format(self.master.measurements["In_Press"]))
             #print(int(time.time() - last_time))
             cmd_state = self.check_command_vector()
             if cmd_state == 1:
+                print("manual proceeding to stage1")
+                self.flow_info_logger.write_info('manual proceeding to stage1')
                 break
             elif cmd_state == 4:
                 self.flow_info_logger.write_info('manual cycle restart,air cycle was not completed')
@@ -199,13 +205,14 @@ class flowControl():
             self.flow_info_logger.write_info("Command TOFF_PUMP Successfuly turned off the pump")
             self.master.status['pump'] = 0
             self.master.commands['TOFF_PUMP'] = 0
+            time.sleep(5)
             return 0
 
         elif self.master.commands['TERMINATE_EXP']==1:
 
-            self.valve1.close_valve()
+            self.valve1.open_valve()
             self.master.status['valve1'] = 1
-            self.valve2.close_valve()
+            self.valve2.open_valve()
             self.master.status['valve2'] = 1
             self.pump.toff_pump()
             self.master.status['pump'] = 0
