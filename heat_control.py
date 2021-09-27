@@ -12,10 +12,10 @@ class HeatControl:
 
         self.master=master
         self.heating_info_logger=InfoLogger('heaters_info_logger','heaters.log')
-        self.pump_min_temp=5.00
-        self.pump_max_temp=25.00
-        self.sb_min_temp=5.00
-        self.sb_max_temp=25.00
+        self.pump_min_temp=10.00
+        self.pump_max_temp=20.00
+        self.sb_min_temp=10.00
+        self.sb_max_temp=20.00
         self.init_heaters()
 
     def turn_off_heat(self,id):
@@ -47,7 +47,7 @@ class HeatControl:
                 b=self.check_heat(2,self.master.measurements['SB_Temp'],self.master.status['heater2'])
             if a or b == -1 :
                 return
-            time.sleep(5)# gia na min trwei cpu
+            time.sleep(2)# gia na min trwei cpu
 
     def init_heaters(self):
 
