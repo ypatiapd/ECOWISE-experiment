@@ -21,6 +21,8 @@ class test_data:
         self.init_sensors()
         self.init_loggers()
         self.init_csv()
+        self.P0=953.00
+        # sea_level_esrange:319
 
     def init_csv(self):
 
@@ -144,8 +146,8 @@ class test_data:
         h= "{:.2f}".format(float(h))
         p = "{:.2f}".format(float(p))
         #print("Outside Temperature: {} °C" .format(t))
-        """print("Outside Pressure: {} P".format(p))
-        print("Outside Humidity: {} %%".format(h))"""
+        #print("Outside Pressure: {} P".format(p))
+        #print("Outside Humidity: {} %%".format(h))
         self.master.measurements["Out_Temp"]=t
         self.master.measurements["Out_Hum"]=h
         self.master.measurements["Out_press_BME"] = p
@@ -157,8 +159,8 @@ class test_data:
         h = "{:.2f}".format(float(h))
         p = "{:.2f}".format(float(p))
         #print("Inside Temperature: {} °C".format(t))
-        """print("Inside Pressure: {} P".format(p))
-        print("Inside Humidity: {} %%".format(h))"""
+        #print("Inside Pressure: {} P".format(p))
+        #print("Inside Humidity: {} %%".format(h))
         self.master.measurements["In_Temp"] = t
         self.master.measurements["In_Hum"] = h
         self.master.measurements["In_press_BME"] = p
@@ -166,6 +168,8 @@ class test_data:
     def read_Out_Press(self):
 
         press, temp = self.multiplex.get_press(5)
+        alt = (44330.0 * (1 - pow(press / self.P0, 1 / 5.255)))
+        print('altitude='+format(alt))
         press = "{:.2f}".format(float(press))
         #print("quick'n'easy pressure={} mBar, temperature={} C".format(press, temp))
         #print(" outside pressure={} mBar".format(press))
@@ -205,12 +209,12 @@ class test_data:
 
         lat,lng,alt=self.gps.read_data2() #test me keraiaaaa
         lat= format(float(lat))
-        lat = "{:.3f}".format(float(lat))
+        lat = "{:.6f}".format(float(lat))
         lng = format(float(lng))
-        lng = "{:.3f}".format(float(lng))
+        lng = "{:.6f}".format(float(lng))
         alt = format(float(alt))
-        alt = "{:.3f}".format(float(alt))
-        #print("gps data"+format(lat)+",,,,,,"+format(lng))
+        alt = "{:.6f}".format(float(alt))
+        print("gps data"+format(lat)+",,,,,,"+format(lng)+",,,,,,"+format(alt))
         self.master.measurements["Gps_X"]=lat
         self.master.measurements["Gps_Y"]=lng
         self.master.measurements["Gps_altitude"]=alt
@@ -218,8 +222,10 @@ class test_data:
     def read_CO2(self):
 
         co2_1,ref_1,co2_2,ref_2=self.co2_sensor.get_value()
-        #print("co2 concentration={}".format(co2))
-        #print("co2 ref={}".format(ref))
+        #print("co2_1 concentration={}".format(co2_1))
+        #print("co2_1 ref={}".format(ref_2))
+        #print("co2_2 concentration={}".format(co2_2))
+        #print("co2_2 ref={}".format(ref_2))
         self.master.measurements["CO2_1_voltage"]=co2_1
         self.master.measurements["CO2_1_ref"] = ref_1
         self.master.measurements["CO2_2_voltage"] = co2_2
@@ -228,12 +234,14 @@ class test_data:
     def read_O3(self):
 
         ae_2,we_2,ae_1,we_1= self.o3_sensor.get_value()
-        #print("ozone_1 concentration={}".format(o3))
-        #print("o3 ref={}".format(ref))
-        self.master.measurements["O3_1_voltage"] = ae_2
-        self.master.measurements["O3_1_ref"] = we_2
-        self.master.measurements["O3_2_voltage"] =ae_1
-        self.master.measurements["O3_2_ref"] = we_1
+        #print("ozone_1 voltage={}".format(ae_1))
+        #print("o3_1 ref={}".format(we_1))
+        #print("ozone_2 voltage={}".format(ae_2))
+        #print("o3_2 ref={}".format(we_2))
+        self.master.measurements["O3_1_voltage"] = ae_1
+        self.master.measurements["O3_1_ref"] = we_1
+        self.master.measurements["O3_2_voltage"] =ae_2
+        self.master.measurements["O3_2_ref"] = we_2
 
     def log_data(self):
 
