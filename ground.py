@@ -454,4 +454,3 @@ class ground:
         self.ax.relim()
         self.ax.set_autoscale_on(True)
         self.ax.autoscale_view(True, True, True)
-
